@@ -13,7 +13,7 @@ Proyecto del Parcial 2 de Diseño y Arquitectura (MVC).
 
 - Java 21 con Swing (interfaz gráfica)
 - Maven (se incluye el wrapper `mvnw`, no hace falta instalarlo)
-- MySQL 8.0 (driver JDBC `mysql-connector-j`)
+- MySQL de XAMPP (driver JDBC `mysql-connector-j`)
 
 ## Arquitectura
 
@@ -30,10 +30,10 @@ Patrones de diseño utilizados:
 
 ## Cómo ejecutar
 
-1. **Crear la base de datos:** abrir MySQL Workbench, conectarse como `root` y ejecutar el script `bd/01_esquema.sql`. Crea la base `gestion_limpieza`, sus tablas, el administrador inicial y el usuario `limpieza_app` que usa la aplicación.
+1. **Crear la base de datos:** encender Apache y MySQL en el panel de XAMPP, abrir phpMyAdmin (http://localhost/phpmyadmin), ir a **Importar** y elegir el archivo `bd/01_esquema.sql`. Esto crea la base `gestion_limpieza`, sus tablas y el administrador inicial.
 2. **Ejecutar la aplicación:**
    - Desde VS Code (con el *Extension Pack for Java*): abrir la carpeta del proyecto y ejecutar la clase `mx.limpieza.Main`.
    - Desde la terminal, en la carpeta del proyecto: `mvnw.cmd compile exec:java`. La variable `JAVA_HOME` debe apuntar al JDK 21.
 3. **Entrar** con el usuario `admin` y la contraseña `admin123`.
 
-Los datos de conexión están en `src/main/resources/db.properties`.
+Los datos de conexión están en `src/main/resources/db.properties`. Por defecto usan el usuario `root` sin contraseña, como viene XAMPP.
