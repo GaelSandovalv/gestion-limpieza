@@ -1,0 +1,14 @@
+# Archivos generados por Maven al compilar
+target/
+
+# Configuración local de los IDEs
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Otros archivos generados
+*.class
+*.log
