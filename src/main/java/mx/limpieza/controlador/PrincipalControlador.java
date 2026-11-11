@@ -5,6 +5,9 @@ import java.awt.event.WindowEvent;
 import mx.limpieza.modelo.conexion.ConexionBD;
 import mx.limpieza.modelo.sesion.Sesion;
 import mx.limpieza.vista.ColoniaVista;
+import mx.limpieza.vista.CuadrillaVista;
+import mx.limpieza.vista.JefeCuadrillaVista;
+import mx.limpieza.vista.PersonalVista;
 import mx.limpieza.vista.VentanaPrincipal;
 
 /**
@@ -24,6 +27,9 @@ public class PrincipalControlador {
             }
         });
         vista.agregarOpcion(vista.getMenuCatalogos(), "Colonias").addActionListener(e -> abrirColonias());
+        vista.agregarOpcion(vista.getMenuCatalogos(), "Jefes de cuadrilla").addActionListener(e -> abrirJefesCuadrilla());
+        vista.agregarOpcion(vista.getMenuCatalogos(), "Cuadrillas").addActionListener(e -> abrirCuadrillas());
+        vista.agregarOpcion(vista.getMenuCatalogos(), "Personal").addActionListener(e -> abrirPersonal());
     }
 
     public void iniciar() {
@@ -50,6 +56,24 @@ public class PrincipalControlador {
     private void abrirColonias() {
         ColoniaVista panel = new ColoniaVista();
         new ColoniaControlador(panel);
+        vista.mostrarPanel(panel);
+    }
+
+    private void abrirJefesCuadrilla() {
+        JefeCuadrillaVista panel = new JefeCuadrillaVista();
+        new JefeCuadrillaControlador(panel);
+        vista.mostrarPanel(panel);
+    }
+
+    private void abrirCuadrillas() {
+        CuadrillaVista panel = new CuadrillaVista();
+        new CuadrillaControlador(panel);
+        vista.mostrarPanel(panel);
+    }
+
+    private void abrirPersonal() {
+        PersonalVista panel = new PersonalVista();
+        new PersonalControlador(panel);
         vista.mostrarPanel(panel);
     }
 }
