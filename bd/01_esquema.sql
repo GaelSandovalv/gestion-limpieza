@@ -80,6 +80,6 @@ CREATE TABLE IF NOT EXISTS actividad_colonia (
 ) ENGINE = InnoDB;
 
 -- Administrador inicial: usuario "admin", contraseña "admin123"
--- (la contraseña se guarda cifrada con SHA-256 y sal)
+-- (la contraseña se guarda cifrada con PBKDF2 y sal)
 INSERT IGNORE INTO administrador (usuario, contrasena_hash, nombre)
-VALUES ('admin', 'zL07oz3dy59rcPn4iuQAgQ==:9bnoWMhbaDDMxKBKdEtgpOKaaGLEXKKkYlARzJr16Zg=', 'Administrador');
+VALUES ('admin', 'EOPs3Zpy1QVUET5OjK7Vbw==:HigjHxsahZxCymTTws7Bm7Bdu6ZLGQgXCMlCoIQkqxk=', 'Administrador');
