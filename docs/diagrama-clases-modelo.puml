@@ -1,0 +1,418 @@
+@startuml diagrama-clases-modelo
+' Diagrama de clases del modelo: paquete mx.limpieza.modelo y sus subpaquetes
+' Fuente: src/main/java/mx/limpieza/modelo
+!pragma layout smetana
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundCorner 6
+skinparam nodesep 40
+skinparam ranksep 55
+skinparam ArrowColor #34495E
+skinparam ArrowThickness 1.2
+skinparam ArrowFontSize 11
+skinparam titleFontSize 18
+skinparam titleFontStyle bold
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+skinparam class {
+  BackgroundColor #FDFEFE
+  BorderColor #2C3E50
+  BorderThickness 1.1
+  HeaderBackgroundColor #D6EAF8
+  FontStyle bold
+  FontSize 13
+  AttributeFontSize 12
+  StereotypeFontSize 11
+}
+
+skinparam package {
+  BorderColor #5D6D7E
+  FontSize 13
+  FontStyle bold
+}
+
+skinparam note {
+  BackgroundColor #FEF9E7
+  BorderColor #B7950B
+  FontSize 11
+}
+
+skinparam legend {
+  BackgroundColor #FBFCFC
+  BorderColor #85929E
+  FontSize 11
+}
+
+hide circle
+hide empty members
+set separator none
+
+title Diagrama de clases: modelo (paquete mx.limpieza.modelo)
+
+package "modelo.sesion" as psesion #FDF5EC {
+  class Sesion <<Singleton>> {
+    - {static} instancia : Sesion
+    - administrador : Administrador
+    --
+    - Sesion()
+    + {static} getInstancia() : Sesion
+    + iniciar(administrador : Administrador) : void
+    + getAdministrador() : Administrador
+    + estaActiva() : boolean
+    + {static} destruir() : void
+  }
+}
+
+package "modelo" as pmodelo #F4F9FD {
+
+  class Administrador {
+    - id : int
+    - usuario : String
+    - contrasenaHash : String
+    - nombre : String
+    --
+    + Administrador()
+    + Administrador(id : int, usuario : String,
+    \t\tcontrasenaHash : String, nombre : String)
+    + getId() : int
+    + setId(id : int) : void
+    + getUsuario() : String
+    + setUsuario(usuario : String) : void
+    + getContrasenaHash() : String
+    + setContrasenaHash(contrasenaHash : String) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + toString() : String
+  }
+
+  abstract class Persona <<abstract>> {
+    - id : int
+    - nombre : String
+    - apellidos : String
+    --
+    # Persona()
+    # Persona(id : int, nombre : String, apellidos : String)
+    + getId() : int
+    + setId(id : int) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getApellidos() : String
+    + setApellidos(apellidos : String) : void
+    + getNombreCompleto() : String
+    + toString() : String
+  }
+
+  class ResumenCuadrilla {
+    - cuadrillaId : int
+    - nombreCuadrilla : String
+    - nombreJefe : String
+    - numPersonal : int
+    - numActividades : int
+    --
+    + ResumenCuadrilla(cuadrillaId : int,
+    \t\tnombreCuadrilla : String, nombreJefe : String,
+    \t\tnumPersonal : int, numActividades : int)
+    + getCuadrillaId() : int
+    + getNombreCuadrilla() : String
+    + getNombreJefe() : String
+    + getNumPersonal() : int
+    + getNumActividades() : int
+  }
+
+  class JefeCuadrilla {
+    + JefeCuadrilla()
+    + JefeCuadrilla(id : int, nombre : String,
+    \t\tapellidos : String)
+  }
+
+  class Cuadrilla {
+    - id : int
+    - nombre : String
+    - jefe : JefeCuadrilla
+    --
+    + Cuadrilla()
+    + Cuadrilla(id : int, nombre : String,
+    \t\tjefe : JefeCuadrilla)
+    + getId() : int
+    + setId(id : int) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getJefe() : JefeCuadrilla
+    + setJefe(jefe : JefeCuadrilla) : void
+    + toString() : String
+  }
+
+  class Personal {
+    - cuadrilla : Cuadrilla
+    --
+    + Personal()
+    + Personal(id : int, nombre : String,
+    \t\tapellidos : String, cuadrilla : Cuadrilla)
+    + getCuadrilla() : Cuadrilla
+    + setCuadrilla(cuadrilla : Cuadrilla) : void
+  }
+
+  class Actividad {
+    - id : int
+    - nombre : String
+    - detalle : String
+    - fecha : LocalDate
+    - lugar : String
+    - cuadrilla : Cuadrilla
+    - colonias : List<Colonia>
+    - evidencia : byte[]
+    --
+    + Actividad()
+    + Actividad(id : int, nombre : String, detalle : String,
+    \t\tfecha : LocalDate, lugar : String, cuadrilla : Cuadrilla)
+    + getId() : int
+    + setId(id : int) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getDetalle() : String
+    + setDetalle(detalle : String) : void
+    + getFecha() : LocalDate
+    + setFecha(fecha : LocalDate) : void
+    + getLugar() : String
+    + setLugar(lugar : String) : void
+    + getCuadrilla() : Cuadrilla
+    + setCuadrilla(cuadrilla : Cuadrilla) : void
+    + getColonias() : List<Colonia>
+    + setColonias(colonias : List<Colonia>) : void
+    + getEvidencia() : byte[]
+    + setEvidencia(evidencia : byte[]) : void
+  }
+
+  class Colonia {
+    - id : int
+    - codigoPostal : String
+    - nombre : String
+    - tipoAsentamiento : String
+    --
+    + Colonia()
+    + Colonia(id : int, codigoPostal : String,
+    \t\tnombre : String, tipoAsentamiento : String)
+    + getId() : int
+    + setId(id : int) : void
+    + getCodigoPostal() : String
+    + setCodigoPostal(codigoPostal : String) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getTipoAsentamiento() : String
+    + setTipoAsentamiento(tipoAsentamiento : String) : void
+    + toString() : String
+  }
+}
+
+package "modelo.dao" as pdao #F3FAF4 {
+
+  interface "DAO<T>" as DAO <<interface>> {
+    + insertar(objeto : T) : void
+    + actualizar(objeto : T) : void
+    + eliminar(id : int) : void
+    + buscarPorId(id : int) : T
+    + listar() : List<T>
+  }
+
+  note right of DAO
+    Todos los métodos de los DAO
+    lanzan SQLException.
+  end note
+
+  class AdministradorDAO {
+    - {static} COLUMNAS : String
+    --
+    + insertar(administrador : Administrador) : void
+    + actualizar(administrador : Administrador) : void
+    + eliminar(id : int) : void
+    + buscarPorId(id : int) : Administrador
+    + listar() : List<Administrador>
+    + buscarPorUsuario(usuario : String) : Administrador
+    - mapear(rs : ResultSet) : Administrador
+    - conexion() : Connection
+  }
+
+  class ColoniaDAO {
+    - {static} COLUMNAS : String
+    --
+    + insertar(colonia : Colonia) : void
+    + actualizar(colonia : Colonia) : void
+    + eliminar(id : int) : void
+    + buscarPorId(id : int) : Colonia
+    + listar() : List<Colonia>
+    + buscar(texto : String) : List<Colonia>
+    - mapear(rs : ResultSet) : Colonia
+    - conexion() : Connection
+  }
+
+  class JefeCuadrillaDAO {
+    - {static} COLUMNAS : String
+    --
+    + insertar(jefe : JefeCuadrilla) : void
+    + actualizar(jefe : JefeCuadrilla) : void
+    + eliminar(id : int) : void
+    + buscarPorId(id : int) : JefeCuadrilla
+    + listar() : List<JefeCuadrilla>
+    - mapear(rs : ResultSet) : JefeCuadrilla
+    - conexion() : Connection
+  }
+
+  class ActividadDAO {
+    - {static} CONSULTA_LIGERA : String
+    - {static} ORDEN : String
+    --
+    + insertar(actividad : Actividad) : void
+    + actualizar(actividad : Actividad) : void
+    + eliminar(id : int) : void
+    + buscarPorId(id : int) : Actividad
+    + listar() : List<Actividad>
+    + listarPorCuadrilla(cuadrillaId : int) : List<Actividad>
+    + resumenPorCuadrilla() : List<ResumenCuadrilla>
+    + contarTotal() : int
+    - asignarDatos(ps : PreparedStatement,
+    \t\tactividad : Actividad) : void
+    - insertarColonias(con : Connection, actividadId : int,
+    \t\tcolonias : List<Colonia>) : void
+    - listarColonias(actividadId : int) : List<Colonia>
+    - mapear(rs : ResultSet) : Actividad
+    - conexion() : Connection
+  }
+
+  class CuadrillaDAO {
+    - {static} CONSULTA : String
+    --
+    + insertar(cuadrilla : Cuadrilla) : void
+    + actualizar(cuadrilla : Cuadrilla) : void
+    + eliminar(id : int) : void
+    + buscarPorId(id : int) : Cuadrilla
+    + listar() : List<Cuadrilla>
+    - mapear(rs : ResultSet) : Cuadrilla
+    - conexion() : Connection
+  }
+
+  class PersonalDAO {
+    - {static} CONSULTA : String
+    --
+    + insertar(personal : Personal) : void
+    + actualizar(personal : Personal) : void
+    + eliminar(id : int) : void
+    + buscarPorId(id : int) : Personal
+    + listar() : List<Personal>
+    - mapear(rs : ResultSet) : Personal
+    - conexion() : Connection
+  }
+}
+
+package "modelo.conexion" as pconexion #FDF5EC {
+  class ConexionBD <<Singleton>> {
+    - {static} ARCHIVO_CONFIGURACION : String
+    - {static} SEGUNDOS_VALIDACION : int
+    - {static} instancia : ConexionBD
+    - conexion : Connection
+    --
+    - ConexionBD()
+    + {static} getInstancia() : ConexionBD
+    + getConexion() : Connection
+    + {static} cerrar() : void
+    - {static} leerConfiguracion() : Properties
+  }
+
+  note right of ConexionBD
+    Dependencia «usa» desde modelo.dao:
+    cada DAO obtiene la conexión con
+    ConexionBD.getInstancia().getConexion()
+    en su método privado conexion().
+  end note
+}
+
+package "modelo.seguridad" as pseguridad #FDF5EC {
+  class Contrasenas {
+    - {static} ALGORITMO : String
+    - {static} ITERACIONES : int
+    - {static} LONGITUD_HASH_BITS : int
+    - {static} TAMANO_SAL : int
+    - {static} SEPARADOR : String
+    - {static} ALEATORIO : SecureRandom
+    --
+    - Contrasenas()
+    + {static} generarHash(contrasena : String) : String
+    + {static} verificar(contrasena : String,
+    \t\thashGuardado : String) : boolean
+    - {static} calcularHash(sal : byte[],
+    \t\tcontrasena : String) : byte[]
+  }
+}
+
+package "modelo.util" as putil #FDF5EC {
+  class ImagenUtil {
+    + {static} LADO_MAXIMO : int
+    + {static} TAMANO_MAXIMO_BYTES : int
+    - {static} MENSAJE_NO_ES_IMAGEN : String
+    - {static} CALIDADES : float[]
+    - {static} FACTOR_REDUCCION : double
+    - {static} MAXIMO_REDUCCIONES : int
+    --
+    - ImagenUtil()
+    + {static} prepararEvidencia(archivo : File) : byte[]
+    - {static} leerImagen(archivo : File) : BufferedImage
+    - {static} redimensionar(original : BufferedImage,
+    \t\tescala : double) : BufferedImage
+    - {static} convertirAJpeg(imagen : BufferedImage,
+    \t\tcalidad : float) : byte[]
+  }
+}
+
+' ---- Herencia ----
+Persona <|-- JefeCuadrilla
+Persona <|-- Personal
+
+' ---- Asociaciones entre entidades (con multiplicidad) ----
+Cuadrilla "0..1" -left- "1" JefeCuadrilla : jefe
+Personal "*" -left- "1" Cuadrilla : cuadrilla
+Actividad "*" -up- "1" Cuadrilla : cuadrilla
+Actividad "*" -right- "1..*" Colonia : colonias
+Sesion -down- "0..1" Administrador : administrador
+
+' ---- Realización de la interfaz DAO<T> ----
+ActividadDAO .down.|> DAO : T = Actividad
+CuadrillaDAO .down.|> DAO : T = Cuadrilla
+PersonalDAO .down.|> DAO : T = Personal
+AdministradorDAO .up.|> DAO : T = Administrador
+ColoniaDAO .up.|> DAO : T = Colonia
+JefeCuadrillaDAO .up.|> DAO : T = JefeCuadrilla
+
+' ---- Dependencias ----
+pdao ..> ConexionBD
+ActividadDAO ..> ResumenCuadrilla : <<crea>>
+
+' ---- Acomodo (enlaces ocultos) ----
+Administrador -[hidden]right- Persona
+Persona -[hidden]right- ResumenCuadrilla
+ResumenCuadrilla -[hidden]right- DAO
+ActividadDAO -[hidden]right- CuadrillaDAO
+CuadrillaDAO -[hidden]right- PersonalDAO
+AdministradorDAO -[hidden]right- ColoniaDAO
+ColoniaDAO -[hidden]right- JefeCuadrillaDAO
+AdministradorDAO -[hidden]down- ConexionBD
+Contrasenas -[hidden]down- Persona
+ImagenUtil -[hidden]down- ResumenCuadrilla
+Sesion -[hidden]right- Contrasenas
+Contrasenas -[hidden]right- ImagenUtil
+
+legend bottom right
+  <b>Notación</b>
+  + público    - privado    # protegido    <u>subrayado</u>: estático    <i>cursiva</i>: abstracto
+  Flecha con triángulo continua: herencia    Flecha con triángulo punteada: realización de interfaz
+  Línea continua: asociación (multiplicidad en cada extremo y nombre del atributo)    Flecha punteada: dependencia
+  «Singleton»: clase con una sola instancia, que se obtiene con getInstancia()
+  <b>Modificadores que no se dibujan</b>
+  Sesion, ConexionBD, Contrasenas e ImagenUtil son clases final (constructor privado, no se heredan).
+  Los atributos en MAYÚSCULAS son constantes static final; los atributos de ResumenCuadrilla y ConexionBD.conexion son final.
+  Excepciones: ConexionBD(), getInstancia() y leerConfiguracion() lanzan SQLException; prepararEvidencia(), leerImagen() y convertirAJpeg() lanzan IOException.
+endlegend
+
+@enduml

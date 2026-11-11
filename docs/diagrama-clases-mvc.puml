@@ -1,0 +1,500 @@
+@startuml diagrama-clases-mvc
+' Diagrama de clases de la vista y el controlador, y su relación con el modelo
+' Fuente: src/main/java/mx/limpieza (vista, controlador y Main)
+!pragma layout smetana
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundCorner 6
+skinparam ArrowColor #34495E
+skinparam ArrowThickness 1.2
+skinparam ArrowFontSize 11
+skinparam titleFontSize 18
+skinparam titleFontStyle bold
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+skinparam class {
+  BackgroundColor #FDFEFE
+  BorderColor #2C3E50
+  BorderThickness 1.1
+  HeaderBackgroundColor #D6EAF8
+  FontStyle bold
+  FontSize 13
+  AttributeFontSize 12
+  StereotypeFontSize 11
+}
+
+skinparam class<<externa>> {
+  BackgroundColor #F2F3F4
+  HeaderBackgroundColor #E5E7E9
+  BorderColor #7F8C8D
+}
+
+skinparam package {
+  BorderColor #5D6D7E
+  FontSize 13
+  FontStyle bold
+}
+
+skinparam note {
+  BackgroundColor #FEF9E7
+  BorderColor #B7950B
+  FontSize 11
+}
+
+skinparam legend {
+  BackgroundColor #FBFCFC
+  BorderColor #85929E
+  FontSize 11
+}
+
+hide circle
+hide empty members
+hide <<externa>> stereotype
+set separator none
+
+title Diagrama de clases: vista y controlador (MVC) y su relación con el modelo
+
+package "javax.swing (clases externas)" as pswing #FAFAFA {
+  class JPanel <<externa>>
+  class JFrame <<externa>>
+}
+
+package "mx.limpieza" as praiz #FAFAFA {
+  class Main {
+    + {static} main(args : String[]) : void
+  }
+}
+
+package "vista" as pvista #FEF5E7 {
+
+  class GraficaBarras {
+    - etiquetas : List<String>
+    - valores : List<Integer>
+    --
+    + setDatos(etiquetas : List<String>,
+    \t\tvalores : List<Integer>) : void
+    # paintComponent(g : Graphics) : void
+  }
+
+  class DashboardVista {
+    - lblTotal : JLabel
+    - tablaResumen : JTable
+    - grafica : GraficaBarras
+    - tablaActividades : JTable
+    - txtDetalle : JTextArea
+    - lstColonias : JList<Colonia>
+    - lblImagen : JLabel
+    --
+    + setTotalActividades(total : int) : void
+    + setResumen(filas : List<Object[]>) : void
+    + setDatosGrafica(etiquetas : List<String>,
+    \t\tvalores : List<Integer>) : void
+    + setActividades(filas : List<Object[]>) : void
+    + setDetalle(detalle : String) : void
+    + setColonias(colonias : List<Colonia>) : void
+    + setImagen(imagen : byte[]) : void
+    + limpiarDetalle() : void
+    + getIdCuadrillaSeleccionada() : int
+    + getIdActividadSeleccionada() : int
+    + mostrarError(mensaje : String) : void
+    .. getTablaResumen(), getTablaActividades() ..
+  }
+
+  abstract class PanelCrud <<abstract>> {
+    - modeloTabla : DefaultTableModel
+    - tabla : JTable
+    - btnNuevo : JButton
+    - btnGuardar : JButton
+    - btnEliminar : JButton
+    --
+    # PanelCrud(titulo : String, columnas : String[])
+    # setFormulario(formulario : JPanel) : void
+    # setBarraSuperior(barra : JComponent) : void
+    # {static} crearFormulario(etiquetas : String[],
+    \t\tcampos : JComponent[]) : JPanel
+    + setFilas(filas : List<Object[]>) : void
+    + getIdSeleccionado() : int
+    + limpiarSeleccion() : void
+    + mostrarMensaje(mensaje : String) : void
+    + mostrarError(mensaje : String) : void
+    + confirmar(mensaje : String) : boolean
+    + {abstract} limpiarFormulario() : void
+    .. getTabla(), getBtnNuevo(), ..
+    .. getBtnGuardar(), getBtnEliminar() ..
+  }
+
+  class AdministradorVista {
+    - txtUsuario : JTextField
+    - txtNombre : JTextField
+    - txtContrasena : JPasswordField
+    --
+    + getContrasena() : String
+    + limpiarContrasena() : void
+    + limpiarFormulario() : void
+    .. get/set de usuario y nombre ..
+  }
+
+  class ColoniaVista {
+    - txtCodigoPostal : JTextField
+    - txtNombre : JTextField
+    - txtTipoAsentamiento : JTextField
+    - txtBuscar : JTextField
+    - btnBuscar : JButton
+    --
+    + getTextoBusqueda() : String
+    + getBtnBuscar() : JButton
+    + limpiarFormulario() : void
+    .. get/set de codigoPostal, nombre ..
+    .. y tipoAsentamiento ..
+  }
+
+  class JefeCuadrillaVista {
+    - txtNombre : JTextField
+    - txtApellidos : JTextField
+    --
+    + limpiarFormulario() : void
+    .. get/set de nombre y apellidos ..
+  }
+
+  class CuadrillaVista {
+    - txtNombre : JTextField
+    - cmbJefe : JComboBox<JefeCuadrilla>
+    --
+    + setJefes(jefes : List<JefeCuadrilla>) : void
+    + getJefe() : JefeCuadrilla
+    + setJefe(jefe : JefeCuadrilla) : void
+    + limpiarFormulario() : void
+    .. get/set de nombre ..
+  }
+
+  class PersonalVista {
+    - txtNombre : JTextField
+    - txtApellidos : JTextField
+    - cmbCuadrilla : JComboBox<Cuadrilla>
+    --
+    + setCuadrillas(cuadrillas : List<Cuadrilla>) : void
+    + getCuadrilla() : Cuadrilla
+    + setCuadrilla(cuadrilla : Cuadrilla) : void
+    + limpiarFormulario() : void
+    .. get/set de nombre y apellidos ..
+  }
+
+  class ActividadVista {
+    - txtNombre : JTextField
+    - txtDetalle : JTextArea
+    - spnFecha : JSpinner
+    - txtLugar : JTextField
+    - cmbCuadrilla : JComboBox<Cuadrilla>
+    - lstResultados : JList<Colonia>
+    - lstColonias : JList<Colonia>
+    - lblImagen : JLabel
+    --
+    + limpiarFormulario() : void
+    + mostrarImagen(imagen : byte[]) : void
+    + elegirImagen() : File
+    + setCuadrillas(cuadrillas : List<Cuadrilla>) : void
+    + setResultados(colonias : List<Colonia>) : void
+    + getResultadosMarcados() : List<Colonia>
+    + getColonias() : List<Colonia>
+    + setColonias(colonias : List<Colonia>) : void
+    + getColoniasMarcadas() : List<Colonia>
+    + getTextoBusqueda() : String
+    .. get/set de nombre, detalle, fecha, ..
+    .. lugar y cuadrilla ..
+    .. getters de los botones Buscar, Agregar, ..
+    .. Quitar y Cargar imagen ..
+  }
+
+  class VentanaPrincipal {
+    - menuCatalogos : JMenu
+    - menuActividades : JMenu
+    - menuConsultas : JMenu
+    - menuSistema : JMenu
+    - itemCerrarSistema : JMenuItem
+    - contenido : JPanel
+    - lblAdministrador : JLabel
+    --
+    + agregarOpcion(menu : JMenu,
+    \t\ttexto : String) : JMenuItem
+    + mostrarPanel(panel : JPanel) : void
+    + setNombreAdministrador(
+    \t\tnombre : String) : void
+    + confirmar(mensaje : String) : boolean
+    .. getMenuCatalogos(), getMenuActividades(), ..
+    .. getMenuConsultas(), getItemCerrarSistema() ..
+  }
+
+  class LoginVista {
+    - txtUsuario : JTextField
+    - txtContrasena : JPasswordField
+    - btnEntrar : JButton
+    --
+    + getUsuario() : String
+    + getContrasena() : String
+    + limpiarContrasena() : void
+    + getBtnEntrar() : JButton
+    + mostrarError(mensaje : String) : void
+  }
+}
+
+package "controlador" as pcontrolador #F4ECF7 {
+
+  class AdministradorControlador {
+    - vista : AdministradorVista
+    - administradorDAO : AdministradorDAO
+    - idActual : int
+    --
+    + AdministradorControlador(
+    \t\tvista : AdministradorVista)
+    - cargarTabla() : void
+    - seleccionar() : void
+    - nuevo() : void
+    - guardar() : void
+    - eliminar() : void
+    - esAdministradorDeLaSesion(
+    \t\tid : int) : boolean
+  }
+
+  class ColoniaControlador {
+    - vista : ColoniaVista
+    - coloniaDAO : ColoniaDAO
+    - idActual : int
+    --
+    + ColoniaControlador(
+    \t\tvista : ColoniaVista)
+    - cargarTabla() : void
+    - buscar() : void
+    - seleccionar() : void
+    - nuevo() : void
+    - guardar() : void
+    - eliminar() : void
+  }
+
+  class JefeCuadrillaControlador {
+    - vista : JefeCuadrillaVista
+    - jefeDAO : JefeCuadrillaDAO
+    - idActual : int
+    --
+    + JefeCuadrillaControlador(
+    \t\tvista : JefeCuadrillaVista)
+    - cargarTabla() : void
+    - mostrarSeleccionado() : void
+    - nuevo() : void
+    - guardar() : void
+    - validar(nombre : String,
+    \t\tapellidos : String) : String
+    - eliminar() : void
+  }
+
+  class CuadrillaControlador {
+    - vista : CuadrillaVista
+    - cuadrillaDAO : CuadrillaDAO
+    - jefeDAO : JefeCuadrillaDAO
+    - idActual : int
+    --
+    + CuadrillaControlador(
+    \t\tvista : CuadrillaVista)
+    - cargarDatos() : void
+    - mostrarSeleccionado() : void
+    - nuevo() : void
+    - guardar() : void
+    - eliminar() : void
+  }
+
+  class PersonalControlador {
+    - vista : PersonalVista
+    - personalDAO : PersonalDAO
+    - cuadrillaDAO : CuadrillaDAO
+    - idActual : int
+    --
+    + PersonalControlador(
+    \t\tvista : PersonalVista)
+    - cargarDatos() : void
+    - mostrarSeleccionado() : void
+    - nuevo() : void
+    - guardar() : void
+    - validar(nombre : String,
+    \t\tapellidos : String) : String
+    - eliminar() : void
+  }
+
+  class ActividadControlador {
+    - vista : ActividadVista
+    - actividadDAO : ActividadDAO
+    - cuadrillaDAO : CuadrillaDAO
+    - coloniaDAO : ColoniaDAO
+    - cuadrillas : List<Cuadrilla>
+    - idActual : int
+    - evidenciaActual : byte[]
+    --
+    + ActividadControlador(
+    \t\tvista : ActividadVista)
+    - cargarCuadrillas() : void
+    - cargarTabla() : void
+    - seleccionar() : void
+    - limpiar() : void
+    - guardar() : void
+    - validar(actividad : Actividad) : String
+    - eliminar() : void
+    - buscarColonias() : void
+    - agregarColonias() : void
+    - quitarColonias() : void
+    - cargarImagen() : void
+    - contieneColonia(colonias : List<Colonia>,
+    \t\tid : int) : boolean
+    - buscarCuadrilla(id : int) : Cuadrilla
+  }
+
+  class DashboardControlador {
+    - vista : DashboardVista
+    - actividadDAO : ActividadDAO
+    --
+    + DashboardControlador(
+    \t\tvista : DashboardVista)
+    - cargarResumen() : void
+    - mostrarActividades() : void
+    - mostrarDetalle() : void
+  }
+
+  class PrincipalControlador {
+    - vista : VentanaPrincipal
+    --
+    + PrincipalControlador(
+    \t\tvista : VentanaPrincipal)
+    + iniciar() : void
+    - cerrarSistema() : void
+    - abrirColonias() : void
+    - abrirJefesCuadrilla() : void
+    - abrirCuadrillas() : void
+    - abrirPersonal() : void
+    - abrirAdministradores() : void
+    - abrirActividades() : void
+    - abrirDashboard() : void
+  }
+
+  class LoginControlador {
+    - vista : LoginVista
+    - administradorDAO : AdministradorDAO
+    --
+    + LoginControlador(vista : LoginVista)
+    + iniciar() : void
+    - iniciarSesion() : void
+    - salir() : void
+  }
+
+  class MensajesBD {
+    - {static} ERROR_DUPLICADO : int
+    - {static} ERROR_REGISTRO_RELACIONADO : int
+    - {static} ERROR_ACCESO_DENEGADO : int
+    - {static} ERROR_BASE_NO_EXISTE : int
+    --
+    - MensajesBD()
+    + {static} traducir(e : SQLException) : String
+  }
+}
+
+' ---- Modelo simplificado (detalle completo en el diagrama del modelo) ----
+' Un solo recuadro de paquete; el subpaquete de cada clase va como estereotipo.
+' Los espacios al final del título lo recorren a la izquierda para que ninguna
+' flecha lo cruce.
+package "modelo                                                                                                                                                      " as pmodelo #F4F9FD {
+  class AdministradorDAO <<modelo.dao>> #F3FAF4
+  class ColoniaDAO <<modelo.dao>> #F3FAF4
+  class JefeCuadrillaDAO <<modelo.dao>> #F3FAF4
+  class CuadrillaDAO <<modelo.dao>> #F3FAF4
+  class PersonalDAO <<modelo.dao>> #F3FAF4
+  class ActividadDAO <<modelo.dao>> #F3FAF4
+  class ImagenUtil <<modelo.util>> #FDF5EC
+  class Contrasenas <<modelo.seguridad>> #FDF5EC
+  class Sesion <<modelo.sesion>> <<Singleton>> #FDF5EC
+  class ConexionBD <<modelo.conexion>> <<Singleton>> #FDF5EC
+}
+
+' ---- Herencia ----
+JFrame <|-- LoginVista
+JFrame <|-- VentanaPrincipal
+JPanel <|-- PanelCrud
+JPanel <|-- DashboardVista
+JPanel <|-- GraficaBarras
+PanelCrud <|-- AdministradorVista
+PanelCrud <|-- ColoniaVista
+PanelCrud <|-- JefeCuadrillaVista
+PanelCrud <|-- CuadrillaVista
+PanelCrud <|-- PersonalVista
+PanelCrud <|-- ActividadVista
+
+' ---- Composición dentro de la vista ----
+GraficaBarras -right-* DashboardVista : grafica
+
+' ---- Controlador -> vista (atributo vista) ----
+LoginControlador -up-> LoginVista
+PrincipalControlador -up-> VentanaPrincipal
+AdministradorControlador -up-> AdministradorVista
+ColoniaControlador -up-> ColoniaVista
+JefeCuadrillaControlador -up-> JefeCuadrillaVista
+CuadrillaControlador -up-> CuadrillaVista
+PersonalControlador -up-> PersonalVista
+ActividadControlador -up-> ActividadVista
+DashboardControlador -up-> DashboardVista
+
+' ---- Controlador -> DAO (atributos DAO) ----
+LoginControlador -down-> AdministradorDAO
+AdministradorControlador -down-> AdministradorDAO
+ColoniaControlador -down-> ColoniaDAO
+JefeCuadrillaControlador -down-> JefeCuadrillaDAO
+CuadrillaControlador -down-> CuadrillaDAO
+CuadrillaControlador -down-> JefeCuadrillaDAO
+PersonalControlador -down-> PersonalDAO
+PersonalControlador -down-> CuadrillaDAO
+ActividadControlador -down-> ActividadDAO
+ActividadControlador -down-> CuadrillaDAO
+ActividadControlador -down-> ColoniaDAO
+DashboardControlador -down-> ActividadDAO
+
+' ---- Dependencias (crea / usa) ----
+Main ..> LoginVista : <<crea>>
+Main ..> LoginControlador : <<crea>>
+LoginControlador .right.> PrincipalControlador : <<crea>>
+LoginControlador ..> Sesion : <<usa>>
+LoginControlador ..> Contrasenas : <<usa>>
+LoginControlador ..> ConexionBD : <<usa>>
+PrincipalControlador ..> Sesion : <<usa>>
+PrincipalControlador ..> ConexionBD : <<usa>>
+AdministradorControlador ..> Sesion : <<usa>>
+AdministradorControlador ..> Contrasenas : <<usa>>
+ActividadControlador ..> ImagenUtil : <<usa>>
+
+' ---- Acomodo (enlaces ocultos para ordenar las filas) ----
+JPanel -[hidden]right- JFrame
+JFrame -[hidden]right- Main
+DashboardVista -[hidden]right- PanelCrud
+DashboardVista -[hidden]right- LoginVista
+LoginVista -[hidden]right- VentanaPrincipal
+ActividadControlador -[hidden]right- DashboardControlador
+DashboardControlador -[hidden]right- AdministradorControlador
+AdministradorControlador -[hidden]right- LoginControlador
+PrincipalControlador -[hidden]right- MensajesBD
+
+legend bottom right
+  <b>Notación</b>
+  + público    - privado    # protegido    <u>subrayado</u>: estático    <i>cursiva</i>: abstracto    .. texto ..: miembros resumidos
+  Flecha con triángulo: herencia    Rombo relleno: composición    Flecha continua: asociación (atributo del controlador)
+  Flecha punteada: dependencia («crea»: crea el objeto; «usa»: llama a sus métodos). Todas las que llegan a Sesion, ConexionBD, Contrasenas e ImagenUtil son «usa».
+  Las clases del modelo se muestran sin miembros; el estereotipo indica su subpaquete (detalle completo en el diagrama del modelo).
+  <b>Notas</b>
+  LoginControlador: si el usuario y la contraseña son correctos, inicia la sesión y crea VentanaPrincipal y PrincipalControlador.
+  PrincipalControlador: cada método abrirXxx() crea la vista y el controlador de la opción del menú
+  y la muestra con vista.mostrarPanel(panel); cerrarSistema() llama a Sesion.destruir() y ConexionBD.cerrar().
+  MensajesBD: la usan todos los controladores, excepto PrincipalControlador, para traducir los errores de MySQL a mensajes en español.
+  <b>Miembros que no se dibujan</b> (sí están en el código):
+  constantes privadas static final de vistas y controladores, constructores sin parámetros de las vistas,
+  métodos privados auxiliares de las vistas (arman paneles y tablas o dibujan la gráfica) y algunos componentes
+  Swing internos (paneles, botones, campos de búsqueda y modelos de lista).
+  Los atributos vista y xxxDAO de los controladores son final.
+endlegend
+
+@enduml
