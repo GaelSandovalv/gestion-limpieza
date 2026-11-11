@@ -8,6 +8,7 @@ import mx.limpieza.vista.ActividadVista;
 import mx.limpieza.vista.AdministradorVista;
 import mx.limpieza.vista.ColoniaVista;
 import mx.limpieza.vista.CuadrillaVista;
+import mx.limpieza.vista.DashboardVista;
 import mx.limpieza.vista.JefeCuadrillaVista;
 import mx.limpieza.vista.PersonalVista;
 import mx.limpieza.vista.VentanaPrincipal;
@@ -34,6 +35,7 @@ public class PrincipalControlador {
         vista.agregarOpcion(vista.getMenuCatalogos(), "Personal").addActionListener(e -> abrirPersonal());
         vista.agregarOpcion(vista.getMenuCatalogos(), "Administradores").addActionListener(e -> abrirAdministradores());
         vista.agregarOpcion(vista.getMenuActividades(), "Actividades").addActionListener(e -> abrirActividades());
+        vista.agregarOpcion(vista.getMenuConsultas(), "Dashboard por cuadrilla").addActionListener(e -> abrirDashboard());
     }
 
     public void iniciar() {
@@ -90,6 +92,12 @@ public class PrincipalControlador {
     private void abrirActividades() {
         ActividadVista panel = new ActividadVista();
         new ActividadControlador(panel);
+        vista.mostrarPanel(panel);
+    }
+
+    private void abrirDashboard() {
+        DashboardVista panel = new DashboardVista();
+        new DashboardControlador(panel);
         vista.mostrarPanel(panel);
     }
 }

@@ -37,3 +37,13 @@ Patrones de diseño utilizados:
 3. **Entrar** con el usuario `admin` y la contraseña `admin123`.
 
 Los datos de conexión están en `src/main/resources/db.properties`. Por defecto usan el usuario `root` sin contraseña, como viene XAMPP.
+
+## Mover la base de datos a otra computadora
+
+Para llevar la base con todos sus registros (incluidas las imágenes de evidencia) a otra XAMPP:
+
+1. En phpMyAdmin, seleccionar la base `gestion_limpieza`, ir a **Exportar**, dejar el método **Rápido** y el formato **SQL**, y presionar **Exportar**. Se descarga el archivo `gestion_limpieza.sql`.
+2. En la otra computadora, en phpMyAdmin, crear una base vacía llamada `gestion_limpieza` con el cotejamiento `utf8mb4_unicode_ci`. Si la base ya existe, primero hay que eliminarla, porque el archivo exportado vuelve a crear las tablas.
+3. Seleccionar esa base, ir a **Importar** y elegir el archivo exportado.
+
+Las imágenes de evidencia se guardan reducidas (400 KB como máximo), así que la importación funciona con la configuración de fábrica de XAMPP.
