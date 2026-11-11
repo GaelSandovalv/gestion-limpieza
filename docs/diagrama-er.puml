@@ -1,0 +1,135 @@
+@startuml diagrama-er
+' Diagrama entidad-relación de la base de datos gestion_limpieza
+' Fuente: bd/01_esquema.sql (notación pata de gallo)
+!pragma layout smetana
+
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam roundCorner 6
+skinparam nodesep 70
+skinparam ranksep 80
+skinparam ArrowColor #34495E
+skinparam ArrowThickness 1.6
+skinparam titleFontSize 18
+skinparam titleFontStyle bold
+
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #2C3E50
+  BorderThickness 1.2
+  HeaderBackgroundColor #D6EAF8
+  FontStyle bold
+  FontSize 14
+  AttributeFontSize 12
+}
+
+skinparam legend {
+  BackgroundColor #F8F9F9
+  BorderColor #7F8C8D
+  FontSize 12
+}
+
+skinparam note {
+  BackgroundColor #FEF9E7
+  BorderColor #B7950B
+  FontSize 11
+}
+
+hide circle
+hide empty methods
+
+title
+  Diagrama entidad-relación
+  <size:13>Gestión de Actividades de Limpieza · base de datos gestion_limpieza (MySQL)</size>
+end title
+
+entity "administrador" as administrador {
+  **id** : INT AUTO_INCREMENT <b>[PK]</b>
+  --
+  usuario : VARCHAR(50) [NN] [UQ]
+  contrasena_hash : VARCHAR(100) [NN]
+  nombre : VARCHAR(100) [NN]
+}
+
+entity "jefe_cuadrilla" as jefe_cuadrilla {
+  **id** : INT AUTO_INCREMENT <b>[PK]</b>
+  --
+  nombre : VARCHAR(100) [NN]
+  apellidos : VARCHAR(100) [NN]
+}
+
+entity "cuadrilla" as cuadrilla {
+  **id** : INT AUTO_INCREMENT <b>[PK]</b>
+  --
+  nombre : VARCHAR(100) [NN] [UQ]
+  //jefe_id// : INT [NN] [UQ] <b>[FK]</b> → jefe_cuadrilla.id
+}
+
+entity "personal" as personal {
+  **id** : INT AUTO_INCREMENT <b>[PK]</b>
+  --
+  nombre : VARCHAR(100) [NN]
+  apellidos : VARCHAR(100) [NN]
+  //cuadrilla_id// : INT [NN] <b>[FK]</b> → cuadrilla.id
+}
+
+entity "actividad" as actividad {
+  **id** : INT AUTO_INCREMENT <b>[PK]</b>
+  --
+  nombre : VARCHAR(100) [NN]
+  detalle : TEXT [NN]
+  fecha : DATE [NN]
+  lugar : VARCHAR(200) [NN]
+  //cuadrilla_id// : INT [NN] <b>[FK]</b> → cuadrilla.id
+  evidencia : LONGBLOB NULL
+}
+
+entity "colonia" as colonia {
+  **id** : INT AUTO_INCREMENT <b>[PK]</b>
+  --
+  codigo_postal : CHAR(5) [NN] [UQ*]
+  nombre : VARCHAR(150) [NN] [UQ*]
+  tipo_asentamiento : VARCHAR(50) [NN] [UQ*]
+  --
+  [UQ*] uq_colonia: UNIQUE compuesta
+  (codigo_postal, nombre, tipo_asentamiento)
+}
+
+entity "actividad_colonia" as actividad_colonia {
+  **//actividad_id//** : INT [NN] <b>[PK] [FK]</b> → actividad.id
+  **//colonia_id//** : INT [NN] <b>[PK] [FK]</b> → colonia.id
+  --
+  PK compuesta (actividad_id, colonia_id)
+}
+
+jefe_cuadrilla ||--o| cuadrilla : dirige
+cuadrilla ||--o{ personal : tiene
+cuadrilla ||--o{ actividad : realiza
+actividad ||--|{ actividad_colonia : atiende
+colonia ||--o{ actividad_colonia : es atendida en
+
+note left of actividad_colonia
+  Tabla intermedia (muchos a muchos).
+  fk_ac_actividad: ON DELETE CASCADE, al borrar
+  una actividad se borran sus colonias atendidas.
+  La base de datos no lo impone, pero la aplicación exige
+  al menos una colonia por actividad (por eso |{ ).
+end note
+
+note top of colonia
+  Catálogo de colonias de Saltillo
+  cargado desde SEPOMEX.
+end note
+
+legend bottom left
+  <b>Notación</b>
+  [PK] llave primaria    [FK] llave foránea    [NN] NOT NULL    [UQ] UNIQUE    [UQ*] UNIQUE compuesta
+  Pata de gallo: ||  uno y solo uno    o|  cero o uno    o{  cero o muchos    |{  uno o muchos
+  Las demás llaves foráneas usan ON DELETE RESTRICT: no se borra un registro que esté en uso.
+  fk_cuadrilla_jefe, fk_personal_cuadrilla y fk_actividad_cuadrilla además usan ON UPDATE CASCADE.
+  Todas las tablas son InnoDB; la base usa utf8mb4 (utf8mb4_unicode_ci).
+endlegend
+
+@enduml
