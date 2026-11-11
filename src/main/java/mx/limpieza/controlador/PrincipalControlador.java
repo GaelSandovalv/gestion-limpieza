@@ -4,6 +4,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import mx.limpieza.modelo.conexion.ConexionBD;
 import mx.limpieza.modelo.sesion.Sesion;
+import mx.limpieza.vista.ActividadVista;
 import mx.limpieza.vista.AdministradorVista;
 import mx.limpieza.vista.ColoniaVista;
 import mx.limpieza.vista.CuadrillaVista;
@@ -32,6 +33,7 @@ public class PrincipalControlador {
         vista.agregarOpcion(vista.getMenuCatalogos(), "Cuadrillas").addActionListener(e -> abrirCuadrillas());
         vista.agregarOpcion(vista.getMenuCatalogos(), "Personal").addActionListener(e -> abrirPersonal());
         vista.agregarOpcion(vista.getMenuCatalogos(), "Administradores").addActionListener(e -> abrirAdministradores());
+        vista.agregarOpcion(vista.getMenuActividades(), "Actividades").addActionListener(e -> abrirActividades());
     }
 
     public void iniciar() {
@@ -82,6 +84,12 @@ public class PrincipalControlador {
     private void abrirAdministradores() {
         AdministradorVista panel = new AdministradorVista();
         new AdministradorControlador(panel);
+        vista.mostrarPanel(panel);
+    }
+
+    private void abrirActividades() {
+        ActividadVista panel = new ActividadVista();
+        new ActividadControlador(panel);
         vista.mostrarPanel(panel);
     }
 }
