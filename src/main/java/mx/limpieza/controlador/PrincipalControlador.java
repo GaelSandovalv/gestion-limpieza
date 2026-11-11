@@ -4,6 +4,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import mx.limpieza.modelo.conexion.ConexionBD;
 import mx.limpieza.modelo.sesion.Sesion;
+import mx.limpieza.vista.ColoniaVista;
 import mx.limpieza.vista.VentanaPrincipal;
 
 /**
@@ -22,6 +23,7 @@ public class PrincipalControlador {
                 cerrarSistema();
             }
         });
+        vista.agregarOpcion(vista.getMenuCatalogos(), "Colonias").addActionListener(e -> abrirColonias());
     }
 
     public void iniciar() {
@@ -43,5 +45,11 @@ public class PrincipalControlador {
         ConexionBD.cerrar();
         vista.dispose();
         System.exit(0);
+    }
+
+    private void abrirColonias() {
+        ColoniaVista panel = new ColoniaVista();
+        new ColoniaControlador(panel);
+        vista.mostrarPanel(panel);
     }
 }
