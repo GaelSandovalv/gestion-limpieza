@@ -30,10 +30,10 @@ Patrones de diseño utilizados:
 
 ## Cómo ejecutar
 
-1. **Crear la base de datos:** encender Apache y MySQL en el panel de XAMPP, abrir phpMyAdmin (http://localhost/phpmyadmin), ir a **Importar** y elegir el archivo `bd/01_esquema.sql`. Esto crea la base `gestion_limpieza`, sus tablas y el administrador inicial.
+1. **Crear la base de datos:** encender Apache y MySQL en el panel de XAMPP, abrir phpMyAdmin (http://localhost/phpmyadmin), ir a **Importar** y elegir el archivo `bd/01_esquema.sql`. Esto crea la base `gestion_limpieza`, sus tablas y el administrador inicial. Después, en la misma pestaña **Importar**, elegir `bd/02_colonias_saltillo.sql`, que carga las colonias de Saltillo del catálogo de SEPOMEX.
 2. **Ejecutar la aplicación:**
    - Desde VS Code (con el *Extension Pack for Java*): abrir la carpeta del proyecto y ejecutar la clase `mx.limpieza.Main`.
-   - Desde la terminal, en la carpeta del proyecto: `mvnw.cmd compile exec:java`. La variable `JAVA_HOME` debe apuntar al JDK 21.
+   - Desde la terminal de VS Code (PowerShell o cmd), en la carpeta del proyecto: `.\mvnw.cmd compile exec:java`. La primera vez descarga Maven y el driver, así que necesita internet. La variable `JAVA_HOME` debe apuntar al JDK 21.
 3. **Entrar** con el usuario `admin` y la contraseña `admin123`.
 
 Los datos de conexión están en `src/main/resources/db.properties`. Por defecto usan el usuario `root` sin contraseña, como viene XAMPP.
