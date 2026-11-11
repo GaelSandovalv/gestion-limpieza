@@ -5,6 +5,7 @@ import java.awt.event.WindowEvent;
 import mx.limpieza.modelo.conexion.ConexionBD;
 import mx.limpieza.modelo.sesion.Sesion;
 import mx.limpieza.vista.ColoniaVista;
+import mx.limpieza.vista.JefeCuadrillaVista;
 import mx.limpieza.vista.VentanaPrincipal;
 
 /**
@@ -24,6 +25,7 @@ public class PrincipalControlador {
             }
         });
         vista.agregarOpcion(vista.getMenuCatalogos(), "Colonias").addActionListener(e -> abrirColonias());
+        vista.agregarOpcion(vista.getMenuCatalogos(), "Jefes de cuadrilla").addActionListener(e -> abrirJefesCuadrilla());
     }
 
     public void iniciar() {
@@ -50,6 +52,12 @@ public class PrincipalControlador {
     private void abrirColonias() {
         ColoniaVista panel = new ColoniaVista();
         new ColoniaControlador(panel);
+        vista.mostrarPanel(panel);
+    }
+
+    private void abrirJefesCuadrilla() {
+        JefeCuadrillaVista panel = new JefeCuadrillaVista();
+        new JefeCuadrillaControlador(panel);
         vista.mostrarPanel(panel);
     }
 }
