@@ -13,6 +13,7 @@ import mx.limpieza.modelo.Actividad;
 import mx.limpieza.modelo.Colonia;
 import mx.limpieza.modelo.Cuadrilla;
 import mx.limpieza.modelo.JefeCuadrilla;
+import mx.limpieza.modelo.ResumenCuadrilla;
 import mx.limpieza.modelo.conexion.ConexionBD;
 
 /**
@@ -203,5 +204,56 @@ public class ActividadDAO implements DAO<Actividad> {
 
     private Connection conexion() throws SQLException {
         return ConexionBD.getInstancia().getConexion();
+    }
+
+    // ---- Consultas para el dashboard ----
+
+    /** Actividades de una cuadrilla (sin evidencia ni colonias), primero las más recientes. */
+    public List<Actividad> listarPorCuadrilla(int cuadrillaId) throws SQLException {
+        String sql = CONSULTA_LIGERA + " WHERE a.cuadrilla_id = ?" + ORDEN;
+        List<Actividad> actividades = new ArrayList<>();
+        try (PreparedStatement ps = conexion().prepareStatement(sql)) {
+            ps.setInt(1, cuadrillaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    actividades.add(mapear(rs));
+                }
+            }
+        }
+        return actividades;
+    }
+
+    /**
+     * Resumen de todas las cuadrillas (también las que no tienen actividades):
+     * su jefe, cuántas personas tiene y cuántas actividades ha realizado.
+     */
+    public List<ResumenCuadrilla> resumenPorCuadrilla() throws SQLException {
+        String sql = "SELECT c.id, c.nombre, CONCAT(j.nombre, ' ', j.apellidos) AS jefe,"
+                + " (SELECT COUNT(*) FROM personal p WHERE p.cuadrilla_id = c.id) AS num_personal,"
+                + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id) AS num_actividades"
+                + " FROM cuadrilla c"
+                + " JOIN jefe_cuadrilla j ON j.id = c.jefe_id"
+                + " ORDER BY num_actividades DESC, c.nombre";
+        List<ResumenCuadrilla> resumen = new ArrayList<>();
+        try (PreparedStatement ps = conexion().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                resumen.add(new ResumenCuadrilla(
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("jefe"),
+                        rs.getInt("num_personal"),
+                        rs.getInt("num_actividades")));
+            }
+        }
+        return resumen;
+    }
+
+    /** Número total de actividades registradas. */
+    public int contarTotal() throws SQLException {
+        try (PreparedStatement ps = conexion().prepareStatement("SELECT COUNT(*) FROM actividad");
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        }
     }
 }
