@@ -53,18 +53,10 @@ entity "administrador" as administrador {
   nombre : VARCHAR(100) [NN]
 }
 
-entity "jefe_cuadrilla" as jefe_cuadrilla {
-  **id** : INT AUTO_INCREMENT <b>[PK]</b>
-  --
-  nombre : VARCHAR(100) [NN]
-  apellidos : VARCHAR(100) [NN]
-}
-
 entity "cuadrilla" as cuadrilla {
   **id** : INT AUTO_INCREMENT <b>[PK]</b>
   --
   nombre : VARCHAR(100) [NN] [UQ]
-  //jefe_id// : INT [NN] [UQ] <b>[FK]</b> → jefe_cuadrilla.id
 }
 
 entity "personal" as personal {
@@ -72,6 +64,7 @@ entity "personal" as personal {
   --
   nombre : VARCHAR(100) [NN]
   apellidos : VARCHAR(100) [NN]
+  es_jefe : BOOLEAN [NN] DEFAULT FALSE
   //cuadrilla_id// : INT [NN] <b>[FK]</b> → cuadrilla.id
 }
 
@@ -82,6 +75,7 @@ entity "actividad" as actividad {
   detalle : TEXT [NN]
   fecha : DATE [NN]
   lugar : VARCHAR(200) [NN]
+  terminada : BOOLEAN [NN] DEFAULT FALSE
   //cuadrilla_id// : INT [NN] <b>[FK]</b> → cuadrilla.id
   evidencia : LONGBLOB NULL
 }
@@ -104,11 +98,13 @@ entity "actividad_colonia" as actividad_colonia {
   PK compuesta (actividad_id, colonia_id)
 }
 
-jefe_cuadrilla ||--o| cuadrilla : dirige
 cuadrilla ||--o{ personal : tiene
 cuadrilla ||--o{ actividad : realiza
 actividad ||--|{ actividad_colonia : atiende
 colonia ||--o{ actividad_colonia : es atendida en
+
+' Acomodo (enlace oculto): personal a la izquierda de actividad
+personal -[hidden]right- actividad
 
 note left of actividad_colonia
   Tabla intermedia (muchos a muchos).
@@ -123,12 +119,31 @@ note top of colonia
   cargado desde SEPOMEX.
 end note
 
+note bottom of personal
+  El jefe de cuadrilla también es personal:
+  es la persona de la cuadrilla con es_jefe = TRUE.
+  La base de datos no lo impone, pero la aplicación
+  permite como máximo un jefe por cuadrilla.
+  Una cuadrilla puede quedar sin jefe.
+end note
+
+note right of actividad
+  terminada: FALSE = pendiente,
+  TRUE = ya se realizó.
+  La base de datos no lo impone, pero
+  la aplicación no deja guardar una
+  actividad terminada con fecha
+  posterior a hoy; una pendiente sí
+  puede tener fecha futura.
+end note
+
 legend bottom left
   <b>Notación</b>
   [PK] llave primaria    [FK] llave foránea    [NN] NOT NULL    [UQ] UNIQUE    [UQ*] UNIQUE compuesta
-  Pata de gallo: ||  uno y solo uno    o|  cero o uno    o{  cero o muchos    |{  uno o muchos
+  Pata de gallo: ||  uno y solo uno    o{  cero o muchos    |{  uno o muchos
   Las demás llaves foráneas usan ON DELETE RESTRICT: no se borra un registro que esté en uso.
-  fk_cuadrilla_jefe, fk_personal_cuadrilla y fk_actividad_cuadrilla además usan ON UPDATE CASCADE.
+  fk_personal_cuadrilla y fk_actividad_cuadrilla además usan ON UPDATE CASCADE.
+  BOOLEAN es sinónimo de TINYINT(1): FALSE se guarda como 0 y TRUE como 1.
   Todas las tablas son InnoDB; la base usa utf8mb4 (utf8mb4_unicode_ci).
 endlegend
 
