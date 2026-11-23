@@ -4,14 +4,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import mx.limpieza.modelo.Cuadrilla;
-import mx.limpieza.modelo.JefeCuadrilla;
 import mx.limpieza.modelo.dao.CuadrillaDAO;
-import mx.limpieza.modelo.dao.JefeCuadrillaDAO;
 import mx.limpieza.vista.CuadrillaVista;
 
 /**
- * Controla el CRUD de cuadrillas: llena el combo de jefes, valida el
- * formulario y usa CuadrillaDAO para guardar los cambios en la base de datos.
+ * Controla el CRUD de cuadrillas: valida el formulario y usa CuadrillaDAO
+ * para guardar los cambios en la base de datos.
  */
 public class CuadrillaControlador {
 
@@ -23,7 +21,6 @@ public class CuadrillaControlador {
 
     private final CuadrillaVista vista;
     private final CuadrillaDAO cuadrillaDAO = new CuadrillaDAO();
-    private final JefeCuadrillaDAO jefeDAO = new JefeCuadrillaDAO();
     // Id de la cuadrilla que se está editando; -1 cuando se captura una nueva
     private int idActual = -1;
 
@@ -37,17 +34,16 @@ public class CuadrillaControlador {
                 mostrarSeleccionado();
             }
         });
-        cargarDatos();
+        cargarTabla();
     }
 
-    /** Llena el combo de jefes y la tabla de cuadrillas. */
-    private void cargarDatos() {
+    private void cargarTabla() {
         try {
-            vista.setJefes(jefeDAO.listar());
             List<Object[]> filas = new ArrayList<>();
             for (Cuadrilla cuadrilla : cuadrillaDAO.listar()) {
-                filas.add(new Object[] {cuadrilla.getId(), cuadrilla.getNombre(),
-                    cuadrilla.getJefe().getNombreCompleto()});
+                // El jefe se marca en la pantalla de personal; puede no haberlo todavía
+                String jefe = (cuadrilla.getJefe() != null) ? cuadrilla.getJefe().getNombreCompleto() : "Sin jefe";
+                filas.add(new Object[] {cuadrilla.getId(), cuadrilla.getNombre(), jefe});
             }
             vista.setFilas(filas);
         } catch (SQLException e) {
@@ -65,7 +61,6 @@ public class CuadrillaControlador {
             Cuadrilla cuadrilla = cuadrillaDAO.buscarPorId(id);
             if (cuadrilla != null) {
                 vista.setNombre(cuadrilla.getNombre());
-                vista.setJefe(cuadrilla.getJefe());
                 idActual = id;
             }
         } catch (SQLException e) {
@@ -81,11 +76,6 @@ public class CuadrillaControlador {
 
     private void guardar() {
         String nombre = vista.getNombre();
-        JefeCuadrilla jefe = vista.getJefe();
-        if (jefe == null) {
-            vista.mostrarError("Primero registre un jefe de cuadrilla.");
-            return;
-        }
         if (nombre.isEmpty()) {
             vista.mostrarError("Escriba el nombre de la cuadrilla.");
             return;
@@ -94,7 +84,7 @@ public class CuadrillaControlador {
             vista.mostrarError("El nombre no puede tener más de " + LARGO_MAXIMO + " caracteres.");
             return;
         }
-        Cuadrilla cuadrilla = new Cuadrilla(idActual, nombre, jefe);
+        Cuadrilla cuadrilla = new Cuadrilla(idActual, nombre, null);
         try {
             String mensaje;
             if (idActual == -1) {
@@ -104,17 +94,12 @@ public class CuadrillaControlador {
                 cuadrillaDAO.actualizar(cuadrilla);
                 mensaje = "Cuadrilla modificada.";
             }
-            cargarDatos();
+            cargarTabla();
             nuevo();
             vista.mostrarMensaje(mensaje);
         } catch (SQLException e) {
             if (e.getErrorCode() == ERROR_DUPLICADO) {
-                // MySQL indica en el mensaje cuál campo único se repitió
-                if (e.getMessage().contains("jefe_id")) {
-                    vista.mostrarError("Ese jefe ya está a cargo de otra cuadrilla.");
-                } else {
-                    vista.mostrarError("Ya existe una cuadrilla con ese nombre.");
-                }
+                vista.mostrarError("Ya existe una cuadrilla con ese nombre.");
             } else {
                 vista.mostrarError(MensajesBD.traducir(e));
             }
@@ -132,7 +117,7 @@ public class CuadrillaControlador {
         }
         try {
             cuadrillaDAO.eliminar(id);
-            cargarDatos();
+            cargarTabla();
             nuevo();
             vista.mostrarMensaje("Cuadrilla eliminada.");
         } catch (SQLException e) {

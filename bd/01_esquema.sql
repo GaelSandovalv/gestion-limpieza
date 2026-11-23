@@ -2,6 +2,9 @@
 -- Gestión de Actividades de Limpieza - Modelo de base de datos
 -- Ejecutar en phpMyAdmin (XAMPP), pestaña SQL o Importar.
 -- Se puede ejecutar varias veces sin borrar datos.
+-- Si ya existe una base gestion_limpieza de la versión anterior
+-- (con la tabla jefe_cuadrilla), primero hay que borrarla con
+-- DROP DATABASE gestion_limpieza; y luego ejecutar este script.
 -- =============================================================
 
 SET NAMES utf8mb4;
@@ -20,27 +23,19 @@ CREATE TABLE IF NOT EXISTS administrador (
     nombre          VARCHAR(100) NOT NULL
 ) ENGINE = InnoDB;
 
--- Jefes de cuadrilla
-CREATE TABLE IF NOT EXISTS jefe_cuadrilla (
-    id        INT AUTO_INCREMENT PRIMARY KEY,
-    nombre    VARCHAR(100) NOT NULL,
-    apellidos VARCHAR(100) NOT NULL
-) ENGINE = InnoDB;
-
--- Cada cuadrilla tiene un solo jefe y un jefe dirige una sola cuadrilla
+-- Cuadrillas de limpieza
 CREATE TABLE IF NOT EXISTS cuadrilla (
-    id      INT AUTO_INCREMENT PRIMARY KEY,
-    nombre  VARCHAR(100) NOT NULL UNIQUE,
-    jefe_id INT          NOT NULL UNIQUE,
-    CONSTRAINT fk_cuadrilla_jefe FOREIGN KEY (jefe_id)
-        REFERENCES jefe_cuadrilla (id) ON DELETE RESTRICT ON UPDATE CASCADE
+    id     INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE
 ) ENGINE = InnoDB;
 
--- Personal a cargo del jefe (pertenece a una cuadrilla)
+-- Personal de cada cuadrilla. El jefe de cuadrilla también es personal:
+-- es la persona de la cuadrilla que tiene es_jefe en TRUE (uno por cuadrilla)
 CREATE TABLE IF NOT EXISTS personal (
     id           INT AUTO_INCREMENT PRIMARY KEY,
     nombre       VARCHAR(100) NOT NULL,
     apellidos    VARCHAR(100) NOT NULL,
+    es_jefe      BOOLEAN      NOT NULL DEFAULT FALSE,
     cuadrilla_id INT          NOT NULL,
     CONSTRAINT fk_personal_cuadrilla FOREIGN KEY (cuadrilla_id)
         REFERENCES cuadrilla (id) ON DELETE RESTRICT ON UPDATE CASCADE

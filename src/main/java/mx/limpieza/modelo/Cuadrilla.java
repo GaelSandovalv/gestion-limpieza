@@ -2,18 +2,19 @@ package mx.limpieza.modelo;
 
 /**
  * Grupo de trabajo que realiza las actividades de limpieza.
- * Tiene un solo jefe, y un jefe dirige una sola cuadrilla.
+ * Su jefe es la persona de su personal marcada como jefe; es null
+ * mientras la cuadrilla no tenga jefe.
  */
 public class Cuadrilla {
 
     private int id;
     private String nombre;
-    private JefeCuadrilla jefe;
+    private Personal jefe;
 
     public Cuadrilla() {
     }
 
-    public Cuadrilla(int id, String nombre, JefeCuadrilla jefe) {
+    public Cuadrilla(int id, String nombre, Personal jefe) {
         this.id = id;
         this.nombre = nombre;
         this.jefe = jefe;
@@ -35,11 +36,11 @@ public class Cuadrilla {
         this.nombre = nombre;
     }
 
-    public JefeCuadrilla getJefe() {
+    public Personal getJefe() {
         return jefe;
     }
 
-    public void setJefe(JefeCuadrilla jefe) {
+    public void setJefe(Personal jefe) {
         this.jefe = jefe;
     }
 

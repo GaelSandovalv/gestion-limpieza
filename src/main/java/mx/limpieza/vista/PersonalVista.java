@@ -2,6 +2,7 @@ package mx.limpieza.vista;
 
 import java.awt.Dimension;
 import java.util.List;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
@@ -9,22 +10,26 @@ import mx.limpieza.modelo.Cuadrilla;
 
 /**
  * Pantalla del CRUD del personal. La cuadrilla a la que pertenece cada
- * persona se elige en un combo que el controlador llena.
+ * persona se elige en un combo que el controlador llena, y la casilla
+ * "Jefe de cuadrilla" indica si esa persona es el jefe de su cuadrilla.
  */
 public class PersonalVista extends PanelCrud {
 
     private final JTextField txtNombre = new JTextField(20);
     private final JTextField txtApellidos = new JTextField(20);
     private final JComboBox<Cuadrilla> cmbCuadrilla = new JComboBox<>();
+    private final JCheckBox chkJefe = new JCheckBox("Jefe de cuadrilla");
 
     public PersonalVista() {
-        super("Personal de cuadrilla", new String[] {"ID", "Nombre", "Apellidos", "Cuadrilla"});
+        super("Personal de cuadrilla", new String[] {"ID", "Nombre", "Apellidos", "Cuadrilla", "Jefe"});
+        // La columna Jefe solo dice Sí o No: así queda más espacio para los nombres
+        getTabla().getColumnModel().getColumn(4).setMaxWidth(60);
         // El combo mide lo mismo que los cuadros de texto aunque haya nombres muy largos
         cmbCuadrilla.setPreferredSize(new Dimension(txtNombre.getPreferredSize().width,
                 cmbCuadrilla.getPreferredSize().height));
         setFormulario(crearFormulario(
-                new String[] {"Nombre:", "Apellidos:", "Cuadrilla:"},
-                new JComponent[] {txtNombre, txtApellidos, cmbCuadrilla}));
+                new String[] {"Nombre:", "Apellidos:", "Cuadrilla:", "Puesto:"},
+                new JComponent[] {txtNombre, txtApellidos, cmbCuadrilla, chkJefe}));
     }
 
     /** Llena el combo con las cuadrillas registradas. */
@@ -69,6 +74,14 @@ public class PersonalVista extends PanelCrud {
         }
     }
 
+    public boolean isEsJefe() {
+        return chkJefe.isSelected();
+    }
+
+    public void setEsJefe(boolean esJefe) {
+        chkJefe.setSelected(esJefe);
+    }
+
     @Override
     public void limpiarFormulario() {
         txtNombre.setText("");
@@ -76,6 +89,7 @@ public class PersonalVista extends PanelCrud {
         if (cmbCuadrilla.getItemCount() > 0) {
             cmbCuadrilla.setSelectedIndex(0);
         }
+        chkJefe.setSelected(false);
         txtNombre.requestFocusInWindow();
     }
 }
