@@ -9,21 +9,17 @@ import mx.limpieza.modelo.seguridad.Contrasenas;
 import mx.limpieza.modelo.sesion.Sesion;
 import mx.limpieza.vista.AdministradorVista;
 
-/**
- * Controla el CRUD de administradores: alta, consulta, modificación y baja.
- * La contraseña se guarda siempre como hash.
- */
+
 public class AdministradorControlador {
 
-    // Longitudes máximas de las columnas en la base de datos
     private static final int MAXIMO_USUARIO = 50;
     private static final int MAXIMO_NOMBRE = 100;
-    // Error de MySQL cuando el usuario ya existe (la columna es UNIQUE)
+    
     private static final int ERROR_DUPLICADO = 1062;
 
     private final AdministradorVista vista;
     private final AdministradorDAO administradorDAO = new AdministradorDAO();
-    // Id del administrador que se está editando (-1 si es uno nuevo)
+    
     private int idActual = -1;
 
     public AdministradorControlador(AdministradorVista vista) {
@@ -51,7 +47,7 @@ public class AdministradorControlador {
         }
     }
 
-    /** Carga en el formulario el administrador seleccionado en la tabla. */
+    /** Carga en el formulario el administrador seleccionado en la tabla */
     private void seleccionar() {
         int id = vista.getIdSeleccionado();
         if (id == -1) {
@@ -107,7 +103,7 @@ public class AdministradorControlador {
                 Administrador administrador = new Administrador(0, usuario, Contrasenas.generarHash(contrasena), nombre);
                 administradorDAO.insertar(administrador);
             } else {
-                // Se parte del registro guardado para conservar el hash si la contraseña se deja vacía
+               
                 Administrador administrador = administradorDAO.buscarPorId(idActual);
                 administrador.setUsuario(usuario);
                 administrador.setNombre(nombre);
@@ -115,7 +111,7 @@ public class AdministradorControlador {
                     administrador.setContrasenaHash(Contrasenas.generarHash(contrasena));
                 }
                 administradorDAO.actualizar(administrador);
-                // Si el administrador se modificó a sí mismo, la sesión se queda con sus datos nuevos
+              
                 if (esAdministradorDeLaSesion(idActual)) {
                     Sesion.getInstancia().iniciar(administrador);
                 }

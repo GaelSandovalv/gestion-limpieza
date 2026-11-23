@@ -10,9 +10,7 @@ import java.util.List;
 import mx.limpieza.modelo.Administrador;
 import mx.limpieza.modelo.conexion.ConexionBD;
 
-/**
- * Acceso a datos de la tabla administrador.
- */
+
 public class AdministradorDAO implements DAO<Administrador> {
 
     private static final String COLUMNAS = "id, usuario, contrasena_hash, nombre";

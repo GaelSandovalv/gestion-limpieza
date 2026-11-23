@@ -45,10 +45,7 @@ public class PrincipalControlador {
         vista.setVisible(true);
     }
 
-    /**
-     * Cierra el sistema de forma segura: destruye la sesión, cierra la
-     * conexión a la base de datos y termina la aplicación.
-     */
+    
     private void cerrarSistema() {
         if (!vista.confirmar("¿Desea cerrar el sistema?")) {
             return;

@@ -7,11 +7,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-/**
- * Conexión a la base de datos MySQL usando el patrón Singleton.
- * Toda la aplicación comparte una sola instancia (y una sola conexión),
- * que se obtiene con {@link #getInstancia()}.
- */
+
 public final class ConexionBD {
 
     private static final String ARCHIVO_CONFIGURACION = "/db.properties";

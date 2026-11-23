@@ -2,11 +2,7 @@ package mx.limpieza.modelo.sesion;
 
 import mx.limpieza.modelo.Administrador;
 
-/**
- * Sesión del administrador que entró al sistema (patrón Singleton).
- * Funciona como la "variable global" de sesión: cualquier parte de la
- * aplicación puede saber quién inició sesión.
- */
+
 public final class Sesion {
 
     // Única instancia de la clase

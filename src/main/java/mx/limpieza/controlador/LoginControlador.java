@@ -11,10 +11,7 @@ import mx.limpieza.modelo.sesion.Sesion;
 import mx.limpieza.vista.LoginVista;
 import mx.limpieza.vista.VentanaPrincipal;
 
-/**
- * Valida el usuario y la contraseña del administrador y, si son correctos,
- * inicia la sesión y abre la ventana principal.
- */
+
 public class LoginControlador {
 
     private final LoginVista vista;

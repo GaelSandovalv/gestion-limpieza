@@ -17,10 +17,7 @@ import mx.limpieza.modelo.dao.CuadrillaDAO;
 import mx.limpieza.modelo.util.ImagenUtil;
 import mx.limpieza.vista.ActividadVista;
 
-/**
- * Controla el CRUD de actividades de limpieza: valida los datos, maneja las
- * colonias atendidas y la imagen de evidencia, y guarda todo con ActividadDAO.
- */
+
 public class ActividadControlador {
 
     // Longitudes máximas de las columnas de la tabla actividad

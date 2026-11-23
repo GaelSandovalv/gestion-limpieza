@@ -16,11 +16,7 @@ import mx.limpieza.modelo.JefeCuadrilla;
 import mx.limpieza.modelo.ResumenCuadrilla;
 import mx.limpieza.modelo.conexion.ConexionBD;
 
-/**
- * Acceso a datos de la tabla actividad y de sus colonias atendidas
- * (tabla actividad_colonia). Guardar una actividad modifica las dos tablas,
- * por eso insertar y actualizar usan una transacción: se guarda todo o nada.
- */
+
 public class ActividadDAO implements DAO<Actividad> {
 
     // Consulta ligera para llenar tablas: no trae la imagen ni las colonias
@@ -29,13 +25,12 @@ public class ActividadDAO implements DAO<Actividad> {
             + " FROM actividad a"
             + " JOIN cuadrilla c ON c.id = a.cuadrilla_id";
 
-    // Primero las más recientes
     private static final String ORDEN = " ORDER BY a.fecha DESC, a.id DESC";
 
     @Override
     public void insertar(Actividad actividad) throws SQLException {
         Connection con = conexion();
-        // Inicia la transacción: nada queda guardado hasta el commit
+        // Inicia la transacción
         con.setAutoCommit(false);
         try {
             String sql = "INSERT INTO actividad (nombre, detalle, fecha, lugar, cuadrilla_id, evidencia)"
@@ -52,10 +47,10 @@ public class ActividadDAO implements DAO<Actividad> {
             }
             insertarColonias(con, id, actividad.getColonias());
             con.commit();
-            // El id se asigna solo si la transacción se confirmó
+            // El id se asigna solo si la transacción se confirmo
             actividad.setId(id);
         } catch (SQLException | RuntimeException e) {
-            // Si algo falló, se deshace todo lo que se hizo en la transacción
+            // Si algo falló, se deshace todo 
             con.rollback();
             throw e;
         } finally {
@@ -223,10 +218,7 @@ public class ActividadDAO implements DAO<Actividad> {
         return actividades;
     }
 
-    /**
-     * Resumen de todas las cuadrillas (también las que no tienen actividades):
-     * su jefe, cuántas personas tiene y cuántas actividades ha realizado.
-     */
+   
     public List<ResumenCuadrilla> resumenPorCuadrilla() throws SQLException {
         String sql = "SELECT c.id, c.nombre, CONCAT(j.nombre, ' ', j.apellidos) AS jefe,"
                 + " (SELECT COUNT(*) FROM personal p WHERE p.cuadrilla_id = c.id) AS num_personal,"

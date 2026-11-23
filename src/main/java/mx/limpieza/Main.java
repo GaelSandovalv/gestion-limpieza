@@ -6,9 +6,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 import mx.limpieza.controlador.LoginControlador;
 import mx.limpieza.vista.LoginVista;
 
-/**
- * Punto de entrada de la aplicación: abre la pantalla de login.
- */
 public class Main {
 
     public static void main(String[] args) {
