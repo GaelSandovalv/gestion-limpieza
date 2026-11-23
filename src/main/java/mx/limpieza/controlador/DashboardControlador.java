@@ -10,9 +10,10 @@ import mx.limpieza.modelo.dao.ActividadDAO;
 import mx.limpieza.vista.DashboardVista;
 
 /**
- * Controla el dashboard por cuadrilla: carga el total de actividades, la tabla
- * resumen y la gráfica, y atiende la consulta (al seleccionar una cuadrilla
- * se listan sus actividades; al seleccionar una actividad se ve su detalle).
+ * Controla el dashboard por cuadrilla: carga los totales de actividades
+ * terminadas y pendientes, la tabla resumen y la gráfica, y atiende la consulta
+ * (al seleccionar una cuadrilla se listan sus actividades pendientes y
+ * terminadas; al seleccionar una actividad se ve su detalle).
  */
 public class DashboardControlador {
 
@@ -28,60 +29,77 @@ public class DashboardControlador {
                 mostrarActividades();
             }
         });
-        vista.getTablaActividades().getSelectionModel().addListSelectionListener(e -> {
+        vista.getTablaPendientes().getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 mostrarDetalle();
             }
         });
+        vista.getTablaTerminadas().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                mostrarDetalle();
+            }
+        });
+        // Al cambiar de pestaña se muestra el detalle de lo seleccionado en la otra pestaña
+        vista.getPestanas().addChangeListener(e -> mostrarDetalle());
         cargarResumen();
     }
 
-    /** Carga el total general, la tabla resumen y la gráfica de barras. */
+    /** Carga los totales, la tabla resumen y la gráfica de barras. */
     private void cargarResumen() {
         try {
-            vista.setTotalActividades(actividadDAO.contarTotal());
+            vista.setTotales(actividadDAO.contarPorEstado(true), actividadDAO.contarPorEstado(false));
             List<Object[]> filas = new ArrayList<>();
             List<String> etiquetas = new ArrayList<>();
-            List<Integer> valores = new ArrayList<>();
+            List<Integer> terminadas = new ArrayList<>();
+            List<Integer> pendientes = new ArrayList<>();
             for (ResumenCuadrilla resumen : actividadDAO.resumenPorCuadrilla()) {
                 filas.add(new Object[] {
                     resumen.getCuadrillaId(),
                     resumen.getNombreCuadrilla(),
                     (resumen.getNombreJefe() != null) ? resumen.getNombreJefe() : "Sin jefe",
                     resumen.getNumPersonal(),
-                    resumen.getNumActividades()
+                    resumen.getNumTerminadas(),
+                    resumen.getNumPendientes()
                 });
                 // La gráfica muestra las mismas cuadrillas, en el mismo orden que la tabla
                 etiquetas.add(resumen.getNombreCuadrilla());
-                valores.add(resumen.getNumActividades());
+                terminadas.add(resumen.getNumTerminadas());
+                pendientes.add(resumen.getNumPendientes());
             }
             vista.setResumen(filas);
-            vista.setDatosGrafica(etiquetas, valores);
+            vista.setDatosGrafica(etiquetas, terminadas, pendientes);
         } catch (SQLException e) {
             vista.mostrarError(MensajesBD.traducir(e));
         }
     }
 
-    /** Lista las actividades de la cuadrilla seleccionada en la tabla resumen. */
+    /** Lista las actividades de la cuadrilla seleccionada, separadas en pendientes y terminadas. */
     private void mostrarActividades() {
-        List<Object[]> filas = new ArrayList<>();
+        List<Object[]> pendientes = new ArrayList<>();
+        List<Object[]> terminadas = new ArrayList<>();
         int cuadrillaId = vista.getIdCuadrillaSeleccionada();
         if (cuadrillaId != -1) {
             try {
                 for (Actividad actividad : actividadDAO.listarPorCuadrilla(cuadrillaId)) {
-                    filas.add(new Object[] {
+                    Object[] fila = {
                         actividad.getId(),
                         actividad.getNombre(),
                         actividad.getFecha().format(FORMATO_FECHA),
                         actividad.getLugar()
-                    });
+                    };
+                    if (actividad.isTerminada()) {
+                        terminadas.add(fila);
+                    } else {
+                        pendientes.add(fila);
+                    }
                 }
             } catch (SQLException e) {
                 vista.mostrarError(MensajesBD.traducir(e));
             }
         }
-        // Al cambiar la lista se pierde la actividad seleccionada y se limpia su detalle
-        vista.setActividades(filas);
+        // Al cambiar las listas se pierde la actividad seleccionada y se limpia su detalle
+        vista.setActividades(pendientes, terminadas);
+        vista.limpiarDetalle();
     }
 
     /** Muestra el detalle, las colonias y la evidencia de la actividad seleccionada. */

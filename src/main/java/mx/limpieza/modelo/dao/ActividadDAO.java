@@ -230,10 +230,11 @@ public class ActividadDAO implements DAO<Actividad> {
         // El jefe es NULL si la cuadrilla no tiene; num_personal no cuenta al jefe
         String sql = "SELECT c.id, c.nombre, CONCAT(j.nombre, ' ', j.apellidos) AS jefe,"
                 + " (SELECT COUNT(*) FROM personal p WHERE p.cuadrilla_id = c.id AND p.es_jefe = FALSE) AS num_personal,"
-                + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id) AS num_actividades"
+                + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id AND a.terminada = TRUE) AS num_terminadas,"
+                + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id AND a.terminada = FALSE) AS num_pendientes"
                 + " FROM cuadrilla c"
                 + " LEFT JOIN personal j ON j.cuadrilla_id = c.id AND j.es_jefe = TRUE"
-                + " ORDER BY num_actividades DESC, c.nombre";
+                + " ORDER BY num_terminadas DESC, num_pendientes DESC, c.nombre";
         List<ResumenCuadrilla> resumen = new ArrayList<>();
         try (PreparedStatement ps = conexion().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -243,17 +244,20 @@ public class ActividadDAO implements DAO<Actividad> {
                         rs.getString("nombre"),
                         rs.getString("jefe"),
                         rs.getInt("num_personal"),
-                        rs.getInt("num_actividades")));
+                        rs.getInt("num_terminadas"),
+                        rs.getInt("num_pendientes")));
             }
         }
         return resumen;
     }
 
-    /** Número total de actividades registradas. */
-    public int contarTotal() throws SQLException {
-        try (PreparedStatement ps = conexion().prepareStatement("SELECT COUNT(*) FROM actividad");
-             ResultSet rs = ps.executeQuery()) {
-            return rs.next() ? rs.getInt(1) : 0;
+    /** Número de actividades terminadas (true) o pendientes (false). */
+    public int contarPorEstado(boolean terminada) throws SQLException {
+        try (PreparedStatement ps = conexion().prepareStatement("SELECT COUNT(*) FROM actividad WHERE terminada = ?")) {
+            ps.setBoolean(1, terminada);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
         }
     }
 }
