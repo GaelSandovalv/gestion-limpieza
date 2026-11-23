@@ -111,50 +111,60 @@ package "modelo" as pmodelo #F4F9FD {
     - nombreCuadrilla : String
     - nombreJefe : String
     - numPersonal : int
-    - numActividades : int
+    - numTerminadas : int
+    - numPendientes : int
     --
     + ResumenCuadrilla(cuadrillaId : int,
     \t\tnombreCuadrilla : String, nombreJefe : String,
-    \t\tnumPersonal : int, numActividades : int)
+    \t\tnumPersonal : int, numTerminadas : int,
+    \t\tnumPendientes : int)
     + getCuadrillaId() : int
     + getNombreCuadrilla() : String
     + getNombreJefe() : String
     + getNumPersonal() : int
-    + getNumActividades() : int
-  }
-
-  class JefeCuadrilla {
-    + JefeCuadrilla()
-    + JefeCuadrilla(id : int, nombre : String,
-    \t\tapellidos : String)
+    + getNumTerminadas() : int
+    + getNumPendientes() : int
   }
 
   class Cuadrilla {
     - id : int
     - nombre : String
-    - jefe : JefeCuadrilla
+    - jefe : Personal
     --
     + Cuadrilla()
     + Cuadrilla(id : int, nombre : String,
-    \t\tjefe : JefeCuadrilla)
+    \t\tjefe : Personal)
     + getId() : int
     + setId(id : int) : void
     + getNombre() : String
     + setNombre(nombre : String) : void
-    + getJefe() : JefeCuadrilla
-    + setJefe(jefe : JefeCuadrilla) : void
+    + getJefe() : Personal
+    + setJefe(jefe : Personal) : void
     + toString() : String
   }
 
   class Personal {
+    - esJefe : boolean
     - cuadrilla : Cuadrilla
     --
     + Personal()
     + Personal(id : int, nombre : String,
-    \t\tapellidos : String, cuadrilla : Cuadrilla)
+    \t\tapellidos : String, esJefe : boolean,
+    \t\tcuadrilla : Cuadrilla)
+    + isEsJefe() : boolean
+    + setEsJefe(esJefe : boolean) : void
     + getCuadrilla() : Cuadrilla
     + setCuadrilla(cuadrilla : Cuadrilla) : void
   }
+
+  note right of Personal
+    El jefe de una cuadrilla es una persona
+    de su personal con esJefe = true.
+    Cuadrilla.jefe es null mientras la
+    cuadrilla no tiene jefe (por eso 0..1).
+    Máximo un jefe por cuadrilla: lo revisa
+    PersonalControlador con buscarJefe().
+  end note
 
   class Actividad {
     - id : int
@@ -162,13 +172,15 @@ package "modelo" as pmodelo #F4F9FD {
     - detalle : String
     - fecha : LocalDate
     - lugar : String
+    - terminada : boolean
     - cuadrilla : Cuadrilla
     - colonias : List<Colonia>
     - evidencia : byte[]
     --
     + Actividad()
     + Actividad(id : int, nombre : String, detalle : String,
-    \t\tfecha : LocalDate, lugar : String, cuadrilla : Cuadrilla)
+    \t\tfecha : LocalDate, lugar : String, terminada : boolean,
+    \t\tcuadrilla : Cuadrilla)
     + getId() : int
     + setId(id : int) : void
     + getNombre() : String
@@ -179,6 +191,8 @@ package "modelo" as pmodelo #F4F9FD {
     + setFecha(fecha : LocalDate) : void
     + getLugar() : String
     + setLugar(lugar : String) : void
+    + isTerminada() : boolean
+    + setTerminada(terminada : boolean) : void
     + getCuadrilla() : Cuadrilla
     + setCuadrilla(cuadrilla : Cuadrilla) : void
     + getColonias() : List<Colonia>
@@ -249,18 +263,6 @@ package "modelo.dao" as pdao #F3FAF4 {
     - conexion() : Connection
   }
 
-  class JefeCuadrillaDAO {
-    - {static} COLUMNAS : String
-    --
-    + insertar(jefe : JefeCuadrilla) : void
-    + actualizar(jefe : JefeCuadrilla) : void
-    + eliminar(id : int) : void
-    + buscarPorId(id : int) : JefeCuadrilla
-    + listar() : List<JefeCuadrilla>
-    - mapear(rs : ResultSet) : JefeCuadrilla
-    - conexion() : Connection
-  }
-
   class ActividadDAO {
     - {static} CONSULTA_LIGERA : String
     - {static} ORDEN : String
@@ -272,7 +274,7 @@ package "modelo.dao" as pdao #F3FAF4 {
     + listar() : List<Actividad>
     + listarPorCuadrilla(cuadrillaId : int) : List<Actividad>
     + resumenPorCuadrilla() : List<ResumenCuadrilla>
-    + contarTotal() : int
+    + contarPorEstado(terminada : boolean) : int
     - asignarDatos(ps : PreparedStatement,
     \t\tactividad : Actividad) : void
     - insertarColonias(con : Connection, actividadId : int,
@@ -302,6 +304,7 @@ package "modelo.dao" as pdao #F3FAF4 {
     + eliminar(id : int) : void
     + buscarPorId(id : int) : Personal
     + listar() : List<Personal>
+    + buscarJefe(cuadrillaId : int) : Personal
     - mapear(rs : ResultSet) : Personal
     - conexion() : Connection
   }
@@ -367,12 +370,13 @@ package "modelo.util" as putil #FDF5EC {
 }
 
 ' ---- Herencia ----
-Persona <|-- JefeCuadrilla
 Persona <|-- Personal
 
 ' ---- Asociaciones entre entidades (con multiplicidad) ----
-Cuadrilla "0..1" -left- "1" JefeCuadrilla : jefe
+' Entre Cuadrilla y Personal hay dos asociaciones; los \n antes de "jefe"
+' bajan esa etiqueta para que las dos líneas no queden encimadas.
 Personal "*" -left- "1" Cuadrilla : cuadrilla
+Cuadrilla "0..1" -right- "0..1" Personal : \n\njefe
 Actividad "*" -up- "1" Cuadrilla : cuadrilla
 Actividad "*" -right- "1..*" Colonia : colonias
 Sesion -down- "0..1" Administrador : administrador
@@ -383,7 +387,6 @@ CuadrillaDAO .down.|> DAO : T = Cuadrilla
 PersonalDAO .down.|> DAO : T = Personal
 AdministradorDAO .up.|> DAO : T = Administrador
 ColoniaDAO .up.|> DAO : T = Colonia
-JefeCuadrillaDAO .up.|> DAO : T = JefeCuadrilla
 
 ' ---- Dependencias ----
 pdao ..> ConexionBD
@@ -396,7 +399,6 @@ ResumenCuadrilla -[hidden]right- DAO
 ActividadDAO -[hidden]right- CuadrillaDAO
 CuadrillaDAO -[hidden]right- PersonalDAO
 AdministradorDAO -[hidden]right- ColoniaDAO
-ColoniaDAO -[hidden]right- JefeCuadrillaDAO
 AdministradorDAO -[hidden]down- ConexionBD
 Contrasenas -[hidden]down- Persona
 ImagenUtil -[hidden]down- ResumenCuadrilla

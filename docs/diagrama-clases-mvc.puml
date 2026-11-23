@@ -71,29 +71,24 @@ package "mx.limpieza" as praiz #FAFAFA {
 
 package "vista" as pvista #FEF5E7 {
 
-  class GraficaBarras {
-    - etiquetas : List<String>
-    - valores : List<Integer>
-    --
-    + setDatos(etiquetas : List<String>,
-    \t\tvalores : List<Integer>) : void
-    # paintComponent(g : Graphics) : void
-  }
-
   class DashboardVista {
     - lblTotal : JLabel
     - tablaResumen : JTable
     - grafica : GraficaBarras
-    - tablaActividades : JTable
+    - tablaPendientes : JTable
+    - tablaTerminadas : JTable
+    - pestanas : JTabbedPane
     - txtDetalle : JTextArea
     - lstColonias : JList<Colonia>
     - lblImagen : JLabel
     --
-    + setTotalActividades(total : int) : void
+    + setTotales(terminadas : int, pendientes : int) : void
     + setResumen(filas : List<Object[]>) : void
     + setDatosGrafica(etiquetas : List<String>,
-    \t\tvalores : List<Integer>) : void
-    + setActividades(filas : List<Object[]>) : void
+    \t\tterminadas : List<Integer>,
+    \t\tpendientes : List<Integer>) : void
+    + setActividades(pendientes : List<Object[]>,
+    \t\tterminadas : List<Object[]>) : void
     + setDetalle(detalle : String) : void
     + setColonias(colonias : List<Colonia>) : void
     + setImagen(imagen : byte[]) : void
@@ -101,7 +96,20 @@ package "vista" as pvista #FEF5E7 {
     + getIdCuadrillaSeleccionada() : int
     + getIdActividadSeleccionada() : int
     + mostrarError(mensaje : String) : void
-    .. getTablaResumen(), getTablaActividades() ..
+    .. getTablaResumen(), getTablaPendientes(), ..
+    .. getTablaTerminadas(), getPestanas() ..
+  }
+
+  ' Se declara después de DashboardVista para que quede junto a ella
+  class GraficaBarras {
+    - etiquetas : List<String>
+    - terminadas : List<Integer>
+    - pendientes : List<Integer>
+    --
+    + setDatos(etiquetas : List<String>,
+    \t\tterminadas : List<Integer>,
+    \t\tpendientes : List<Integer>) : void
+    # paintComponent(g : Graphics) : void
   }
 
   abstract class PanelCrud <<abstract>> {
@@ -152,21 +160,9 @@ package "vista" as pvista #FEF5E7 {
     .. y tipoAsentamiento ..
   }
 
-  class JefeCuadrillaVista {
-    - txtNombre : JTextField
-    - txtApellidos : JTextField
-    --
-    + limpiarFormulario() : void
-    .. get/set de nombre y apellidos ..
-  }
-
   class CuadrillaVista {
     - txtNombre : JTextField
-    - cmbJefe : JComboBox<JefeCuadrilla>
     --
-    + setJefes(jefes : List<JefeCuadrilla>) : void
-    + getJefe() : JefeCuadrilla
-    + setJefe(jefe : JefeCuadrilla) : void
     + limpiarFormulario() : void
     .. get/set de nombre ..
   }
@@ -175,10 +171,13 @@ package "vista" as pvista #FEF5E7 {
     - txtNombre : JTextField
     - txtApellidos : JTextField
     - cmbCuadrilla : JComboBox<Cuadrilla>
+    - chkJefe : JCheckBox
     --
     + setCuadrillas(cuadrillas : List<Cuadrilla>) : void
     + getCuadrilla() : Cuadrilla
     + setCuadrilla(cuadrilla : Cuadrilla) : void
+    + isEsJefe() : boolean
+    + setEsJefe(esJefe : boolean) : void
     + limpiarFormulario() : void
     .. get/set de nombre y apellidos ..
   }
@@ -189,6 +188,7 @@ package "vista" as pvista #FEF5E7 {
     - spnFecha : JSpinner
     - txtLugar : JTextField
     - cmbCuadrilla : JComboBox<Cuadrilla>
+    - chkTerminada : JCheckBox
     - lstResultados : JList<Colonia>
     - lstColonias : JList<Colonia>
     - lblImagen : JLabel
@@ -197,6 +197,8 @@ package "vista" as pvista #FEF5E7 {
     + mostrarImagen(imagen : byte[]) : void
     + elegirImagen() : File
     + setCuadrillas(cuadrillas : List<Cuadrilla>) : void
+    + isTerminada() : boolean
+    + setTerminada(terminada : boolean) : void
     + setResultados(colonias : List<Colonia>) : void
     + getResultadosMarcados() : List<Colonia>
     + getColonias() : List<Colonia>
@@ -274,31 +276,14 @@ package "controlador" as pcontrolador #F4ECF7 {
     - eliminar() : void
   }
 
-  class JefeCuadrillaControlador {
-    - vista : JefeCuadrillaVista
-    - jefeDAO : JefeCuadrillaDAO
-    - idActual : int
-    --
-    + JefeCuadrillaControlador(
-    \t\tvista : JefeCuadrillaVista)
-    - cargarTabla() : void
-    - mostrarSeleccionado() : void
-    - nuevo() : void
-    - guardar() : void
-    - validar(nombre : String,
-    \t\tapellidos : String) : String
-    - eliminar() : void
-  }
-
   class CuadrillaControlador {
     - vista : CuadrillaVista
     - cuadrillaDAO : CuadrillaDAO
-    - jefeDAO : JefeCuadrillaDAO
     - idActual : int
     --
     + CuadrillaControlador(
     \t\tvista : CuadrillaVista)
-    - cargarDatos() : void
+    - cargarTabla() : void
     - mostrarSeleccionado() : void
     - nuevo() : void
     - guardar() : void
@@ -368,7 +353,6 @@ package "controlador" as pcontrolador #F4ECF7 {
     + iniciar() : void
     - cerrarSistema() : void
     - abrirColonias() : void
-    - abrirJefesCuadrilla() : void
     - abrirCuadrillas() : void
     - abrirPersonal() : void
     - abrirAdministradores() : void
@@ -399,12 +383,9 @@ package "controlador" as pcontrolador #F4ECF7 {
 
 ' ---- Modelo simplificado (detalle completo en el diagrama del modelo) ----
 ' Un solo recuadro de paquete; el subpaquete de cada clase va como estereotipo.
-' Los espacios al final del título lo recorren a la izquierda para que ninguna
-' flecha lo cruce.
-package "modelo                                                                                                                                                      " as pmodelo #F4F9FD {
+package "modelo" as pmodelo #F4F9FD {
   class AdministradorDAO <<modelo.dao>> #F3FAF4
   class ColoniaDAO <<modelo.dao>> #F3FAF4
-  class JefeCuadrillaDAO <<modelo.dao>> #F3FAF4
   class CuadrillaDAO <<modelo.dao>> #F3FAF4
   class PersonalDAO <<modelo.dao>> #F3FAF4
   class ActividadDAO <<modelo.dao>> #F3FAF4
@@ -422,7 +403,6 @@ JPanel <|-- DashboardVista
 JPanel <|-- GraficaBarras
 PanelCrud <|-- AdministradorVista
 PanelCrud <|-- ColoniaVista
-PanelCrud <|-- JefeCuadrillaVista
 PanelCrud <|-- CuadrillaVista
 PanelCrud <|-- PersonalVista
 PanelCrud <|-- ActividadVista
@@ -435,7 +415,6 @@ LoginControlador -up-> LoginVista
 PrincipalControlador -up-> VentanaPrincipal
 AdministradorControlador -up-> AdministradorVista
 ColoniaControlador -up-> ColoniaVista
-JefeCuadrillaControlador -up-> JefeCuadrillaVista
 CuadrillaControlador -up-> CuadrillaVista
 PersonalControlador -up-> PersonalVista
 ActividadControlador -up-> ActividadVista
@@ -445,9 +424,7 @@ DashboardControlador -up-> DashboardVista
 LoginControlador -down-> AdministradorDAO
 AdministradorControlador -down-> AdministradorDAO
 ColoniaControlador -down-> ColoniaDAO
-JefeCuadrillaControlador -down-> JefeCuadrillaDAO
 CuadrillaControlador -down-> CuadrillaDAO
-CuadrillaControlador -down-> JefeCuadrillaDAO
 PersonalControlador -down-> PersonalDAO
 PersonalControlador -down-> CuadrillaDAO
 ActividadControlador -down-> ActividadDAO
@@ -490,9 +467,12 @@ legend bottom right
   PrincipalControlador: cada método abrirXxx() crea la vista y el controlador de la opción del menú
   y la muestra con vista.mostrarPanel(panel); cerrarSistema() llama a Sesion.destruir() y ConexionBD.cerrar().
   MensajesBD: la usan todos los controladores, excepto PrincipalControlador, para traducir los errores de MySQL a mensajes en español.
+  PersonalControlador: antes de guardar a una persona marcada como jefe, revisa con PersonalDAO.buscarJefe() que su cuadrilla no tenga otro jefe.
+  DashboardControlador: pide los totales con ActividadDAO.contarPorEstado() y reparte las actividades de la cuadrilla seleccionada
+  en las pestañas Pendientes y Terminadas; el detalle es el de la actividad seleccionada en la pestaña visible.
   <b>Miembros que no se dibujan</b> (sí están en el código):
   constantes privadas static final de vistas y controladores, constructores sin parámetros de las vistas,
-  métodos privados auxiliares de las vistas (arman paneles y tablas o dibujan la gráfica) y algunos componentes
+  métodos privados auxiliares de las vistas (arman paneles y tablas, ponen los títulos de las pestañas o dibujan la gráfica) y algunos componentes
   Swing internos (paneles, botones, campos de búsqueda y modelos de lista).
   Los atributos vista y xxxDAO de los controladores son final.
 endlegend
