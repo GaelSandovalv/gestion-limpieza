@@ -15,6 +15,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
@@ -24,9 +25,10 @@ import javax.swing.table.DefaultTableModel;
 import mx.limpieza.modelo.Colonia;
 
 /**
- * Dashboard ejecutivo: arriba, el total de actividades, la tabla resumen por
- * cuadrilla y la gráfica de barras; abajo, la consulta de las actividades de
- * la cuadrilla seleccionada y el detalle de la actividad seleccionada.
+ * Dashboard ejecutivo: arriba, los totales de actividades terminadas y
+ * pendientes, la tabla resumen por cuadrilla y la gráfica de barras; abajo,
+ * las actividades de la cuadrilla seleccionada en dos pestañas (pendientes y
+ * terminadas) y el detalle de la actividad seleccionada.
  */
 public class DashboardVista extends JPanel {
 
@@ -34,12 +36,17 @@ public class DashboardVista extends JPanel {
     // Tamaño máximo de la vista previa de la evidencia
     private static final int ANCHO_IMAGEN = 200;
     private static final int ALTO_IMAGEN = 200;
+    // Posición de cada pestaña de actividades
+    private static final int PESTANA_PENDIENTES = 0;
+    private static final int PESTANA_TERMINADAS = 1;
 
     private final JLabel lblTotal = new JLabel();
     private final JTable tablaResumen = crearTabla(
-            new String[] {"ID", "Cuadrilla", "Jefe de cuadrilla", "Personal", "Actividades realizadas"});
+            new String[] {"ID", "Cuadrilla", "Jefe de cuadrilla", "Personal", "Terminadas", "Pendientes"});
     private final GraficaBarras grafica = new GraficaBarras();
-    private final JTable tablaActividades = crearTabla(new String[] {"ID", "Actividad", "Fecha", "Lugar"});
+    private final JTable tablaPendientes = crearTabla(new String[] {"ID", "Actividad", "Fecha", "Lugar"});
+    private final JTable tablaTerminadas = crearTabla(new String[] {"ID", "Actividad", "Fecha", "Lugar"});
+    private final JTabbedPane pestanas = new JTabbedPane();
     private final JTextArea txtDetalle = new JTextArea();
     private final DefaultListModel<Colonia> modeloColonias = new DefaultListModel<>();
     private final JList<Colonia> lstColonias = new JList<>(modeloColonias);
@@ -49,24 +56,28 @@ public class DashboardVista extends JPanel {
         super(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Encabezado: título y total general de actividades
+        // Encabezado: título y totales de actividades
         JLabel lblTitulo = new JLabel("Dashboard ejecutivo por cuadrilla");
         lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 18f));
         lblTotal.setFont(lblTotal.getFont().deriveFont(Font.BOLD, 14f));
-        setTotalActividades(0);
+        setTotales(0, 0);
         JPanel encabezado = new JPanel(new GridLayout(2, 1, 0, 4));
         encabezado.add(lblTitulo);
         encabezado.add(lblTotal);
         add(encabezado, BorderLayout.NORTH);
 
         // Parte de arriba: la tabla resumen junto a la gráfica
-        anchoColumnas(tablaResumen, 40, 160, 180, 70, 140);
+        anchoColumnas(tablaResumen, 40, 150, 170, 65, 80, 80);
         JPanel resumen = new JPanel(new GridLayout(1, 2, 10, 0));
         resumen.add(enMarco("Resumen por cuadrilla", new JScrollPane(tablaResumen)));
         resumen.add(enMarco("Gráfica", grafica));
 
-        // Parte de abajo: actividades de la cuadrilla y detalle de la actividad
-        anchoColumnas(tablaActividades, 40, 170, 90, 200);
+        // Parte de abajo: actividades de la cuadrilla en dos pestañas y detalle de la actividad
+        anchoColumnas(tablaPendientes, 40, 170, 90, 200);
+        anchoColumnas(tablaTerminadas, 40, 170, 90, 200);
+        pestanas.addTab("", new JScrollPane(tablaPendientes));
+        pestanas.addTab("", new JScrollPane(tablaTerminadas));
+        setTitulosPestanas(0, 0);
         txtDetalle.setEditable(false);
         txtDetalle.setLineWrap(true);
         txtDetalle.setWrapStyleWord(true);
@@ -81,8 +92,7 @@ public class DashboardVista extends JPanel {
         detalle.setPreferredSize(new Dimension(690, 0));
 
         JPanel consulta = new JPanel(new BorderLayout(10, 0));
-        consulta.add(enMarco("Actividades de la cuadrilla seleccionada", new JScrollPane(tablaActividades)),
-                BorderLayout.CENTER);
+        consulta.add(enMarco("Actividades de la cuadrilla seleccionada", pestanas), BorderLayout.CENTER);
         consulta.add(detalle, BorderLayout.EAST);
 
         // Las dos partes se reparten la altura por mitad
@@ -138,20 +148,29 @@ public class DashboardVista extends JPanel {
         return ((Number) tabla.getModel().getValueAt(tabla.convertRowIndexToModel(fila), 0)).intValue();
     }
 
-    public void setTotalActividades(int total) {
-        lblTotal.setText("Total de actividades realizadas: " + total);
+    public void setTotales(int terminadas, int pendientes) {
+        lblTotal.setText("Total de actividades: " + (terminadas + pendientes)
+                + "     Terminadas: " + terminadas + "     Pendientes: " + pendientes);
     }
 
     public void setResumen(List<Object[]> filas) {
         llenarTabla(tablaResumen, filas);
     }
 
-    public void setDatosGrafica(List<String> etiquetas, List<Integer> valores) {
-        grafica.setDatos(etiquetas, valores);
+    public void setDatosGrafica(List<String> etiquetas, List<Integer> terminadas, List<Integer> pendientes) {
+        grafica.setDatos(etiquetas, terminadas, pendientes);
     }
 
-    public void setActividades(List<Object[]> filas) {
-        llenarTabla(tablaActividades, filas);
+    /** Llena las dos pestañas y pone en su título cuántas actividades tiene cada una. */
+    public void setActividades(List<Object[]> pendientes, List<Object[]> terminadas) {
+        llenarTabla(tablaPendientes, pendientes);
+        llenarTabla(tablaTerminadas, terminadas);
+        setTitulosPestanas(pendientes.size(), terminadas.size());
+    }
+
+    private void setTitulosPestanas(int pendientes, int terminadas) {
+        pestanas.setTitleAt(PESTANA_PENDIENTES, "Pendientes (" + pendientes + ")");
+        pestanas.setTitleAt(PESTANA_TERMINADAS, "Terminadas (" + terminadas + ")");
     }
 
     public void setDetalle(String detalle) {
@@ -195,16 +214,28 @@ public class DashboardVista extends JPanel {
         return idSeleccionado(tablaResumen);
     }
 
+    /** ID de la actividad seleccionada en la pestaña que se está viendo, o -1. */
     public int getIdActividadSeleccionada() {
-        return idSeleccionado(tablaActividades);
+        if (pestanas.getSelectedIndex() == PESTANA_TERMINADAS) {
+            return idSeleccionado(tablaTerminadas);
+        }
+        return idSeleccionado(tablaPendientes);
     }
 
     public JTable getTablaResumen() {
         return tablaResumen;
     }
 
-    public JTable getTablaActividades() {
-        return tablaActividades;
+    public JTable getTablaPendientes() {
+        return tablaPendientes;
+    }
+
+    public JTable getTablaTerminadas() {
+        return tablaTerminadas;
+    }
+
+    public JTabbedPane getPestanas() {
+        return pestanas;
     }
 
     public void mostrarError(String mensaje) {

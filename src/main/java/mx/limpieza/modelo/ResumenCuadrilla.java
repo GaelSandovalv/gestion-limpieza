@@ -2,24 +2,27 @@ package mx.limpieza.modelo;
 
 /**
  * Una fila del resumen del dashboard: datos de una cuadrilla con su
- * número de personal y de actividades realizadas. Solo se consulta,
- * por eso no tiene setters.
+ * número de personal y de actividades terminadas y pendientes. Solo se
+ * consulta, por eso no tiene setters.
  */
 public class ResumenCuadrilla {
 
     private final int cuadrillaId;
     private final String nombreCuadrilla;
+    // null si la cuadrilla todavía no tiene jefe
     private final String nombreJefe;
     private final int numPersonal;
-    private final int numActividades;
+    private final int numTerminadas;
+    private final int numPendientes;
 
     public ResumenCuadrilla(int cuadrillaId, String nombreCuadrilla, String nombreJefe,
-                            int numPersonal, int numActividades) {
+                            int numPersonal, int numTerminadas, int numPendientes) {
         this.cuadrillaId = cuadrillaId;
         this.nombreCuadrilla = nombreCuadrilla;
         this.nombreJefe = nombreJefe;
         this.numPersonal = numPersonal;
-        this.numActividades = numActividades;
+        this.numTerminadas = numTerminadas;
+        this.numPendientes = numPendientes;
     }
 
     public int getCuadrillaId() {
@@ -38,7 +41,11 @@ public class ResumenCuadrilla {
         return numPersonal;
     }
 
-    public int getNumActividades() {
-        return numActividades;
+    public int getNumTerminadas() {
+        return numTerminadas;
+    }
+
+    public int getNumPendientes() {
+        return numPendientes;
     }
 }

@@ -20,7 +20,7 @@ import mx.limpieza.modelo.conexion.ConexionBD;
 public class ActividadDAO implements DAO<Actividad> {
 
     // Consulta ligera para llenar tablas: no trae la imagen ni las colonias
-    private static final String CONSULTA_LIGERA = "SELECT a.id, a.nombre, a.detalle, a.fecha, a.lugar,"
+    private static final String CONSULTA_LIGERA = "SELECT a.id, a.nombre, a.detalle, a.fecha, a.lugar, a.terminada,"
             + " c.id AS cuadrilla_id, c.nombre AS cuadrilla_nombre"
             + " FROM actividad a"
             + " JOIN cuadrilla c ON c.id = a.cuadrilla_id";
@@ -33,8 +33,8 @@ public class ActividadDAO implements DAO<Actividad> {
         // Inicia la transacción
         con.setAutoCommit(false);
         try {
-            String sql = "INSERT INTO actividad (nombre, detalle, fecha, lugar, cuadrilla_id, evidencia)"
-                    + " VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO actividad (nombre, detalle, fecha, lugar, terminada, cuadrilla_id, evidencia)"
+                    + " VALUES (?, ?, ?, ?, ?, ?, ?)";
             int id = 0;
             try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 asignarDatos(ps, actividad);
@@ -63,11 +63,11 @@ public class ActividadDAO implements DAO<Actividad> {
         Connection con = conexion();
         con.setAutoCommit(false);
         try {
-            String sql = "UPDATE actividad SET nombre = ?, detalle = ?, fecha = ?, lugar = ?,"
+            String sql = "UPDATE actividad SET nombre = ?, detalle = ?, fecha = ?, lugar = ?, terminada = ?,"
                     + " cuadrilla_id = ?, evidencia = ? WHERE id = ?";
             try (PreparedStatement ps = con.prepareStatement(sql)) {
                 asignarDatos(ps, actividad);
-                ps.setInt(7, actividad.getId());
+                ps.setInt(8, actividad.getId());
                 ps.executeUpdate();
             }
             // Se borran las colonias anteriores y se guardan las de ahora
@@ -97,7 +97,7 @@ public class ActividadDAO implements DAO<Actividad> {
     /** Trae la actividad completa: su cuadrilla con el jefe, sus colonias y la evidencia. */
     @Override
     public Actividad buscarPorId(int id) throws SQLException {
-        String sql = "SELECT a.id, a.nombre, a.detalle, a.fecha, a.lugar, a.evidencia,"
+        String sql = "SELECT a.id, a.nombre, a.detalle, a.fecha, a.lugar, a.terminada, a.evidencia,"
                 + " c.id AS cuadrilla_id, c.nombre AS cuadrilla_nombre,"
                 + " j.id AS jefe_id, j.nombre AS jefe_nombre, j.apellidos AS jefe_apellidos"
                 + " FROM actividad a"
@@ -142,17 +142,18 @@ public class ActividadDAO implements DAO<Actividad> {
         return actividades;
     }
 
-    /** Pasa los datos de la actividad a los parámetros 1 a 6 de la sentencia. */
+    /** Pasa los datos de la actividad a los parámetros 1 a 7 de la sentencia. */
     private void asignarDatos(PreparedStatement ps, Actividad actividad) throws SQLException {
         ps.setString(1, actividad.getNombre());
         ps.setString(2, actividad.getDetalle());
         ps.setObject(3, actividad.getFecha());
         ps.setString(4, actividad.getLugar());
-        ps.setInt(5, actividad.getCuadrilla().getId());
+        ps.setBoolean(5, actividad.isTerminada());
+        ps.setInt(6, actividad.getCuadrilla().getId());
         if (actividad.getEvidencia() == null) {
-            ps.setNull(6, Types.LONGVARBINARY);
+            ps.setNull(7, Types.LONGVARBINARY);
         } else {
-            ps.setBytes(6, actividad.getEvidencia());
+            ps.setBytes(7, actividad.getEvidencia());
         }
     }
 
@@ -199,6 +200,7 @@ public class ActividadDAO implements DAO<Actividad> {
                 rs.getString("detalle"),
                 rs.getObject("fecha", LocalDate.class),
                 rs.getString("lugar"),
+                rs.getBoolean("terminada"),
                 cuadrilla);
     }
 
@@ -228,10 +230,11 @@ public class ActividadDAO implements DAO<Actividad> {
         // El jefe es NULL si la cuadrilla no tiene; num_personal no cuenta al jefe
         String sql = "SELECT c.id, c.nombre, CONCAT(j.nombre, ' ', j.apellidos) AS jefe,"
                 + " (SELECT COUNT(*) FROM personal p WHERE p.cuadrilla_id = c.id AND p.es_jefe = FALSE) AS num_personal,"
-                + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id) AS num_actividades"
+                + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id AND a.terminada = TRUE) AS num_terminadas,"
+                + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id AND a.terminada = FALSE) AS num_pendientes"
                 + " FROM cuadrilla c"
                 + " LEFT JOIN personal j ON j.cuadrilla_id = c.id AND j.es_jefe = TRUE"
-                + " ORDER BY num_actividades DESC, c.nombre";
+                + " ORDER BY num_terminadas DESC, num_pendientes DESC, c.nombre";
         List<ResumenCuadrilla> resumen = new ArrayList<>();
         try (PreparedStatement ps = conexion().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -241,17 +244,20 @@ public class ActividadDAO implements DAO<Actividad> {
                         rs.getString("nombre"),
                         rs.getString("jefe"),
                         rs.getInt("num_personal"),
-                        rs.getInt("num_actividades")));
+                        rs.getInt("num_terminadas"),
+                        rs.getInt("num_pendientes")));
             }
         }
         return resumen;
     }
 
-    /** Número total de actividades registradas. */
-    public int contarTotal() throws SQLException {
-        try (PreparedStatement ps = conexion().prepareStatement("SELECT COUNT(*) FROM actividad");
-             ResultSet rs = ps.executeQuery()) {
-            return rs.next() ? rs.getInt(1) : 0;
+    /** Número de actividades terminadas (true) o pendientes (false). */
+    public int contarPorEstado(boolean terminada) throws SQLException {
+        try (PreparedStatement ps = conexion().prepareStatement("SELECT COUNT(*) FROM actividad WHERE terminada = ?")) {
+            ps.setBoolean(1, terminada);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
         }
     }
 }

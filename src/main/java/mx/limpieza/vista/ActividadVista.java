@@ -19,6 +19,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -39,8 +40,8 @@ import mx.limpieza.modelo.Cuadrilla;
 
 /**
  * Pantalla del CRUD de actividades de limpieza. Además de los datos de la
- * actividad, permite buscar y agregar las colonias atendidas y cargar la
- * imagen de evidencia con una vista previa.
+ * actividad y su estado (pendiente o terminada), permite buscar y agregar
+ * las colonias atendidas y cargar la imagen de evidencia con una vista previa.
  */
 public class ActividadVista extends PanelCrud {
 
@@ -57,6 +58,7 @@ public class ActividadVista extends PanelCrud {
     private final JSpinner spnFecha = new JSpinner(new SpinnerDateModel());
     private final JTextField txtLugar = new JTextField(20);
     private final JComboBox<Cuadrilla> cmbCuadrilla = new JComboBox<>();
+    private final JCheckBox chkTerminada = new JCheckBox("Terminada");
     private final JLabel lblImagen = new JLabel("Sin imagen", SwingConstants.CENTER);
     private final JButton btnCargarImagen = new JButton("Cargar imagen");
 
@@ -70,7 +72,7 @@ public class ActividadVista extends PanelCrud {
     private final JButton btnQuitar = new JButton("Quitar");
 
     public ActividadVista() {
-        super("Actividades de limpieza", new String[]{"ID", "Actividad", "Fecha", "Lugar", "Cuadrilla"});
+        super("Actividades de limpieza", new String[]{"ID", "Actividad", "Fecha", "Lugar", "Estado", "Cuadrilla"});
 
         // El área de texto usa la misma letra que los demás campos
         txtDetalle.setFont(txtNombre.getFont());
@@ -80,10 +82,11 @@ public class ActividadVista extends PanelCrud {
         // El combo no se ensancha si una cuadrilla tiene un nombre muy largo
         cmbCuadrilla.setPrototypeDisplayValue(new Cuadrilla(0, "Nombre de la cuadrilla", null));
 
-        // El ID y la fecha son cortos: así queda más espacio para los textos
+        // El ID, la fecha y el estado son cortos: así queda más espacio para los textos
         TableColumnModel columnas = getTabla().getColumnModel();
         columnas.getColumn(0).setMaxWidth(50);
         columnas.getColumn(2).setMaxWidth(90);
+        columnas.getColumn(4).setMaxWidth(90);
 
         // El formulario es alto, así que se acomoda en dos columnas
         JPanel formulario = new JPanel(new GridBagLayout());
@@ -118,8 +121,8 @@ public class ActividadVista extends PanelCrud {
         JScrollPane scrollDetalle = new JScrollPane(txtDetalle,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-        String[] etiquetas = {"Actividad:", "Detalle:", "Fecha:", "Lugar específico:", "Cuadrilla:", "Evidencia:"};
-        JComponent[] campos = {txtNombre, scrollDetalle, spnFecha, txtLugar, cmbCuadrilla, evidencia};
+        String[] etiquetas = {"Actividad:", "Detalle:", "Fecha:", "Lugar específico:", "Cuadrilla:", "Estado:", "Evidencia:"};
+        JComponent[] campos = {txtNombre, scrollDetalle, spnFecha, txtLugar, cmbCuadrilla, chkTerminada, evidencia};
         return crearFormulario(etiquetas, campos);
     }
 
@@ -184,6 +187,8 @@ public class ActividadVista extends PanelCrud {
         setFecha(LocalDate.now());
         txtLugar.setText("");
         cmbCuadrilla.setSelectedIndex(-1);
+        // Una actividad nueva empieza como pendiente
+        chkTerminada.setSelected(false);
         txtBuscarColonia.setText("");
         modeloResultados.clear();
         modeloColonias.clear();
@@ -272,6 +277,14 @@ public class ActividadVista extends PanelCrud {
 
     public void setCuadrilla(Cuadrilla cuadrilla) {
         cmbCuadrilla.setSelectedItem(cuadrilla);
+    }
+
+    public boolean isTerminada() {
+        return chkTerminada.isSelected();
+    }
+
+    public void setTerminada(boolean terminada) {
+        chkTerminada.setSelected(terminada);
     }
 
     public String getTextoBusqueda() {
