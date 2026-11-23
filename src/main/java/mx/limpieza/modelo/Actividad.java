@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Actividad de limpieza que una cuadrilla realizó en un lugar específico.
- * Guarda las colonias que se atendieron y, si se cargó, la imagen de evidencia.
+ * Actividad de limpieza asignada a una cuadrilla en un lugar específico.
+ * Puede estar pendiente o terminada. Guarda las colonias que se atendieron
+ * y, si se cargó, la imagen de evidencia.
  */
 public class Actividad {
 
@@ -15,6 +16,8 @@ public class Actividad {
     private String detalle;
     private LocalDate fecha;
     private String lugar;
+    // false mientras está pendiente; true cuando ya se realizó
+    private boolean terminada;
     private Cuadrilla cuadrilla;
     private List<Colonia> colonias = new ArrayList<>();
     // Imagen de evidencia en bytes (JPEG); es null si no se cargó ninguna
@@ -23,12 +26,14 @@ public class Actividad {
     public Actividad() {
     }
 
-    public Actividad(int id, String nombre, String detalle, LocalDate fecha, String lugar, Cuadrilla cuadrilla) {
+    public Actividad(int id, String nombre, String detalle, LocalDate fecha, String lugar,
+                     boolean terminada, Cuadrilla cuadrilla) {
         this.id = id;
         this.nombre = nombre;
         this.detalle = detalle;
         this.fecha = fecha;
         this.lugar = lugar;
+        this.terminada = terminada;
         this.cuadrilla = cuadrilla;
     }
 
@@ -70,6 +75,14 @@ public class Actividad {
 
     public void setLugar(String lugar) {
         this.lugar = lugar;
+    }
+
+    public boolean isTerminada() {
+        return terminada;
+    }
+
+    public void setTerminada(boolean terminada) {
+        this.terminada = terminada;
     }
 
     public Cuadrilla getCuadrilla() {

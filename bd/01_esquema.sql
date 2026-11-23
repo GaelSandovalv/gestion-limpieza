@@ -2,8 +2,9 @@
 -- Gestión de Actividades de Limpieza - Modelo de base de datos
 -- Ejecutar en phpMyAdmin (XAMPP), pestaña SQL o Importar.
 -- Se puede ejecutar varias veces sin borrar datos.
--- Si ya existe una base gestion_limpieza de la versión anterior
--- (con la tabla jefe_cuadrilla), primero hay que borrarla con
+-- Si la base gestion_limpieza se creó con una versión anterior de
+-- este script (con la tabla jefe_cuadrilla o sin la columna terminada
+-- en actividad), primero hay que borrarla con
 -- DROP DATABASE gestion_limpieza; y luego ejecutar este script.
 -- =============================================================
 
@@ -50,13 +51,15 @@ CREATE TABLE IF NOT EXISTS colonia (
     CONSTRAINT uq_colonia UNIQUE (codigo_postal, nombre, tipo_asentamiento)
 ) ENGINE = InnoDB;
 
--- Actividad de limpieza realizada por una cuadrilla en un lugar específico
+-- Actividad de limpieza asignada a una cuadrilla en un lugar específico.
+-- terminada indica si ya se realizó (FALSE = pendiente)
 CREATE TABLE IF NOT EXISTS actividad (
     id           INT AUTO_INCREMENT PRIMARY KEY,
     nombre       VARCHAR(100) NOT NULL,
     detalle      TEXT         NOT NULL,
     fecha        DATE         NOT NULL,
     lugar        VARCHAR(200) NOT NULL,
+    terminada    BOOLEAN      NOT NULL DEFAULT FALSE,
     cuadrilla_id INT          NOT NULL,
     evidencia    LONGBLOB     NULL,
     CONSTRAINT fk_actividad_cuadrilla FOREIGN KEY (cuadrilla_id)

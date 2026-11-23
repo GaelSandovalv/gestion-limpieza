@@ -73,6 +73,7 @@ public class ActividadControlador {
                     actividad.getNombre(),
                     actividad.getFecha().format(FORMATO_FECHA),
                     actividad.getLugar(),
+                    actividad.isTerminada() ? "Terminada" : "Pendiente",
                     actividad.getCuadrilla().getNombre()
                 });
             }
@@ -99,6 +100,7 @@ public class ActividadControlador {
             vista.setFecha(actividad.getFecha());
             vista.setLugar(actividad.getLugar());
             vista.setCuadrilla(buscarCuadrilla(actividad.getCuadrilla().getId()));
+            vista.setTerminada(actividad.isTerminada());
             vista.setColonias(actividad.getColonias());
             evidenciaActual = actividad.getEvidencia();
             vista.mostrarImagen(evidenciaActual);
@@ -118,7 +120,7 @@ public class ActividadControlador {
 
     private void guardar() {
         Actividad actividad = new Actividad(0, vista.getNombre(), vista.getDetalle(),
-                vista.getFecha(), vista.getLugar(), vista.getCuadrilla());
+                vista.getFecha(), vista.getLugar(), vista.isTerminada(), vista.getCuadrilla());
         actividad.setColonias(vista.getColonias());
         // Si no se cargó una imagen nueva, se conserva la que ya tenía
         actividad.setEvidencia(evidenciaActual);
@@ -161,11 +163,15 @@ public class ActividadControlador {
         if (actividad.getDetalle().getBytes(StandardCharsets.UTF_8).length > MAX_BYTES_DETALLE) {
             return "El detalle de la actividad es demasiado largo.";
         }
-        if (actividad.getFecha().isAfter(LocalDate.now())) {
-            return "La fecha no puede ser posterior a hoy.";
+        // Una actividad pendiente puede tener una fecha futura (la fecha en que se hará),
+        // pero una terminada ya se realizó
+        if (actividad.isTerminada() && actividad.getFecha().isAfter(LocalDate.now())) {
+            return "Una actividad terminada no puede tener una fecha posterior a hoy.";
         }
-        // Si se escribe el año corto (26 en lugar de 2026), el selector lo toma como el año 26
-        if (actividad.getFecha().getYear() < 2000) {
+        // Si se escribe el año corto (26 en lugar de 2026), el selector lo toma como el año 26;
+        // si se escribe una cifra de más (20266), MySQL no acepta la fecha
+        int anio = actividad.getFecha().getYear();
+        if (anio < 2000 || anio > 9999) {
             return "Escriba la fecha con el año completo (dd/mm/aaaa).";
         }
         if (actividad.getLugar().isEmpty()) {
