@@ -47,7 +47,7 @@ public class DashboardControlador {
                 filas.add(new Object[] {
                     resumen.getCuadrillaId(),
                     resumen.getNombreCuadrilla(),
-                    resumen.getNombreJefe(),
+                    (resumen.getNombreJefe() != null) ? resumen.getNombreJefe() : "Sin jefe",
                     resumen.getNumPersonal(),
                     resumen.getNumActividades()
                 });

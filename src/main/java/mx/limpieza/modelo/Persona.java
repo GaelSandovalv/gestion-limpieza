@@ -2,7 +2,7 @@ package mx.limpieza.modelo;
 
 /**
  * Datos comunes de las personas del sistema. Es abstracta porque nunca se
- * crea una "persona" sola: siempre es un jefe de cuadrilla o parte del personal.
+ * crea una "persona" sola: siempre es parte del personal de una cuadrilla.
  */
 public abstract class Persona {
 

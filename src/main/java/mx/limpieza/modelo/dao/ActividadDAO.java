@@ -12,7 +12,7 @@ import java.util.List;
 import mx.limpieza.modelo.Actividad;
 import mx.limpieza.modelo.Colonia;
 import mx.limpieza.modelo.Cuadrilla;
-import mx.limpieza.modelo.JefeCuadrilla;
+import mx.limpieza.modelo.Personal;
 import mx.limpieza.modelo.ResumenCuadrilla;
 import mx.limpieza.modelo.conexion.ConexionBD;
 
@@ -102,7 +102,7 @@ public class ActividadDAO implements DAO<Actividad> {
                 + " j.id AS jefe_id, j.nombre AS jefe_nombre, j.apellidos AS jefe_apellidos"
                 + " FROM actividad a"
                 + " JOIN cuadrilla c ON c.id = a.cuadrilla_id"
-                + " JOIN jefe_cuadrilla j ON j.id = c.jefe_id"
+                + " LEFT JOIN personal j ON j.cuadrilla_id = c.id AND j.es_jefe = TRUE"
                 + " WHERE a.id = ?";
         Actividad actividad = null;
         try (PreparedStatement ps = conexion().prepareStatement(sql)) {
@@ -110,10 +110,15 @@ public class ActividadDAO implements DAO<Actividad> {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     actividad = mapear(rs);
-                    actividad.getCuadrilla().setJefe(new JefeCuadrilla(
-                            rs.getInt("jefe_id"),
-                            rs.getString("jefe_nombre"),
-                            rs.getString("jefe_apellidos")));
+                    // La cuadrilla puede no tener jefe todavía (LEFT JOIN)
+                    if (rs.getObject("jefe_id") != null) {
+                        actividad.getCuadrilla().setJefe(new Personal(
+                                rs.getInt("jefe_id"),
+                                rs.getString("jefe_nombre"),
+                                rs.getString("jefe_apellidos"),
+                                true,
+                                actividad.getCuadrilla()));
+                    }
                     actividad.setEvidencia(rs.getBytes("evidencia"));
                 }
             }
@@ -220,11 +225,12 @@ public class ActividadDAO implements DAO<Actividad> {
 
    
     public List<ResumenCuadrilla> resumenPorCuadrilla() throws SQLException {
+        // El jefe es NULL si la cuadrilla no tiene; num_personal no cuenta al jefe
         String sql = "SELECT c.id, c.nombre, CONCAT(j.nombre, ' ', j.apellidos) AS jefe,"
-                + " (SELECT COUNT(*) FROM personal p WHERE p.cuadrilla_id = c.id) AS num_personal,"
+                + " (SELECT COUNT(*) FROM personal p WHERE p.cuadrilla_id = c.id AND p.es_jefe = FALSE) AS num_personal,"
                 + " (SELECT COUNT(*) FROM actividad a WHERE a.cuadrilla_id = c.id) AS num_actividades"
                 + " FROM cuadrilla c"
-                + " JOIN jefe_cuadrilla j ON j.id = c.jefe_id"
+                + " LEFT JOIN personal j ON j.cuadrilla_id = c.id AND j.es_jefe = TRUE"
                 + " ORDER BY num_actividades DESC, c.nombre";
         List<ResumenCuadrilla> resumen = new ArrayList<>();
         try (PreparedStatement ps = conexion().prepareStatement(sql);

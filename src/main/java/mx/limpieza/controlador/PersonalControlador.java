@@ -12,6 +12,7 @@ import mx.limpieza.vista.PersonalVista;
 /**
  * Controla el CRUD del personal: llena el combo de cuadrillas, valida el
  * formulario y usa PersonalDAO para guardar los cambios en la base de datos.
+ * También cuida que cada cuadrilla tenga como máximo un jefe.
  */
 public class PersonalControlador {
 
@@ -44,7 +45,7 @@ public class PersonalControlador {
             List<Object[]> filas = new ArrayList<>();
             for (Personal personal : personalDAO.listar()) {
                 filas.add(new Object[] {personal.getId(), personal.getNombre(), personal.getApellidos(),
-                    personal.getCuadrilla().getNombre()});
+                    personal.getCuadrilla().getNombre(), personal.isEsJefe() ? "Sí" : "No"});
             }
             vista.setFilas(filas);
         } catch (SQLException e) {
@@ -64,6 +65,7 @@ public class PersonalControlador {
                 vista.setNombre(personal.getNombre());
                 vista.setApellidos(personal.getApellidos());
                 vista.setCuadrilla(personal.getCuadrilla());
+                vista.setEsJefe(personal.isEsJefe());
                 idActual = id;
             }
         } catch (SQLException e) {
@@ -90,8 +92,16 @@ public class PersonalControlador {
             vista.mostrarError(error);
             return;
         }
-        Personal personal = new Personal(idActual, nombre, apellidos, cuadrilla);
+        Personal personal = new Personal(idActual, nombre, apellidos, vista.isEsJefe(), cuadrilla);
         try {
+            // Una cuadrilla solo puede tener un jefe
+            if (personal.isEsJefe()) {
+                Personal jefe = personalDAO.buscarJefe(cuadrilla.getId());
+                if (jefe != null && jefe.getId() != idActual) {
+                    vista.mostrarError("Esa cuadrilla ya tiene como jefe a " + jefe.getNombreCompleto() + ".");
+                    return;
+                }
+            }
             String mensaje;
             if (idActual == -1) {
                 personalDAO.insertar(personal);
